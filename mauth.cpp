@@ -29,9 +29,9 @@ Mauth *dole;
 PhotoDown *m_photo;
 DBlite *db;
 
-const char O1_KEY[] = "b597a7c2b618ab3e24ab33d4b00574dd";
-const char O1_SECRET[] = "825c6c6fb429d7b1";
-const char USER_ID[] = "138961904@N02";  // ksenija je 138961904@N02
+const char O1_KEY[] = "put-your-key";
+const char O1_SECRET[] = "put-your-secret";
+const char USER_ID[] = "put-your-id";  
 
 O1 *o1;
 QNetworkAccessManager *manager;
