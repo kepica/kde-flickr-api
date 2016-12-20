@@ -1,24 +1,6 @@
-Plasma Wallpaper Template
-----------------------
+KDE desktop widget Flickr API client
+-------------------------------------
 
--- Build instructions --
+Many Thanks pipacs@GitHub.com for O2-project OAuth 1.0 and OAuth 2.0 qt-library
 
-cd /where/your/wallpaper/is/generated
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX=MYPREFIX ..
-make
-make install
-
-(MYPREFIX is where you install your Plasma setup, replace it accordingly)
-
-Restart plasma to load the wallpaper
-(in a terminal or in krunner type:
-kquitapp plasmashell
-and then
-plasmashell)
-then go to wallpaper settings and select it
-
--- Tutorials and resources --
-Plasma QML API explained
-https://techbase.kde.org/Development/Tutorials/Plasma2/QML2/API
+If you can read croatian , visit http://www.linuxzasve.com/forum for more detail
