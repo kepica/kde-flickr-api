@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gui name="oblaci"
+     version="19"
+     xmlns="http://www.kde.org/standards/kxmlgui/1.0"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0
+                         http://www.kde.org/standards/kxmlgui/1.0/kxmlgui.xsd" >
+ 
+  <MenuBar>
+    <Menu name="file" >
+      <Action name="clear" />
+      <Action name="print" />
+    </Menu>
+    <Menu name="Obavijesti" >
+      <text>O&amp;bavijesti</text>
+      <Action name="clear" />
+      <Action name="pokaz" />
+      <Action name="balon" />
+    </Menu >
+     <Menu name="Flickr" >
+      <text>F&amp;lickr</text>
+      <Action name="echotest" />
+      <Action name="logintest" />
+      <Action name="link" />
+      <Action name="comments" />
+    </Menu >
+    <Menu name="Stats" >
+      <text>S&amp;tatistics</text>
+      <Action name="statphoto" />
+      <Action name="statsum" />
+      <Action name="favorites" />
+      <Action name="osobne" />
+    </Menu >
+  </MenuBar>
+ 
+  <ToolBar name="mainToolBar" >
+    <text>Main Toolbar</text>
+    <Action name="clear" />
+    <Action name="balon" />
+  </ToolBar>
+ 
+</gui>
