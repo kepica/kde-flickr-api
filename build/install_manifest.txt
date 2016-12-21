@@ -1,2 +1,0 @@
-/home/vjeko/bin/oblaci
-/home/vjeko/share/kxmlgui5/oblaci/oblaciui.rc
