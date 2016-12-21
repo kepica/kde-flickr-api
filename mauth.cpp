@@ -33,6 +33,7 @@ const char O1_KEY[] = "put-your-key";
 const char O1_SECRET[] = "put-your-secret";
 const char USER_ID[] = "put-your-id";  
 
+
 O1 *o1;
 QNetworkAccessManager *manager;
 O1Requestor *requestor;   

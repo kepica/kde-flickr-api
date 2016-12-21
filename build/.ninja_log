@@ -63,3 +63,9 @@
 1507	1889	0	oblaci	d11c1d92bc5a5e1f
 0	17	0	CMakeFiles/oblaci_automoc	b6752ac936c1c8d8
 17	38	0	CMakeFiles/install.util	3ef72413f342d7c5
+0	76	0	CMakeFiles/oblaci_automoc	b6752ac936c1c8d8
+76	983	0	CMakeFiles/oblaci.dir/main.cpp.o	97961a8a2b9b5290
+76	1077	0	CMakeFiles/oblaci.dir/mauth.cpp.o	a6399f6ef628b8ad
+1077	1943	0	oblaci	d11c1d92bc5a5e1f
+1	17	0	CMakeFiles/oblaci_automoc	b6752ac936c1c8d8
+17	167	0	CMakeFiles/install.util	3ef72413f342d7c5
