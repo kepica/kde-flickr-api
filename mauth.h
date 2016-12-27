@@ -12,7 +12,7 @@ class Mauth : public QObject
         Mauth(QWidget *parent=0);
         virtual ~Mauth() {};
          
-public Q_SLOTS:
+    public Q_SLOTS:
         
         void lnk();
         void ulnk();
@@ -20,11 +20,17 @@ public Q_SLOTS:
         void photo_comments();
         void get_favorites();
         void get_osobne();
+        void search_tags();
         void print_osobne();
+        void print_tagirane();
         void stats_photo();
         void stats_suma();
         void test_echo();
         void test_login();
+    
+    Q_SIGNALS:
+        
+        void o1_linked(bool flag);
         
     private slots:
         void onLinkedChanged(); 
@@ -36,6 +42,7 @@ public Q_SLOTS:
         void flikComments();
         void flikFavorites();
         void flikPersonal();
+        void searchTags();
         void respStatSuma();
         void respStatPhoto();
         void loadImage();

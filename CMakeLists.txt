@@ -17,8 +17,8 @@ include_directories(/home/vjeko/projects/oblaci)
 option(o2_WITH_QT5 "use qt5" ON)
 option(o2_WITH_OAUTH1 "use o1" ON)
 
-set(oblaci_SRCS main.cpp mainwindow.cpp notice.cpp notica.cpp mauth.cpp komentar.cpp favorites.cpp photodown.cpp dblite.cpp
-    mainwindow.h notice.h notica.h mauth.h komentar.h favorites.h photodown.h dblite.h
+set(oblaci_SRCS main.cpp mainwindow.cpp notice.cpp notica.cpp mauth.cpp komentar.cpp favorites.cpp photodown.cpp dblite.cpp waitsignal.cpp
+    mainwindow.h notice.h notica.h mauth.h komentar.h favorites.h photodown.h dblite.h waitsignal.h
     o0baseauth.cpp o0settingsstore.cpp o1.cpp o1requestor.cpp o1timedreply.cpp
     o0abstractstore.h o0baseauth.h o0globals.h o0requestparameter.h o0settingsstore.h o0simplecrypt.h
     o2.cpp o2reply.cpp o2replyserver.cpp o2requestor.cpp o2simplecrypt.cpp 

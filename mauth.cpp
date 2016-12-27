@@ -26,7 +26,7 @@
 
 MainWindow *gore;
 Mauth *dole;
-PhotoDown *m_photo;
+
 DBlite *db;
 
 const char O1_KEY[] = "put-your-key";
@@ -56,12 +56,7 @@ Mauth::Mauth(QWidget *parent) : QObject(parent)
     connect(o1, SIGNAL(openBrowser(QUrl)), this, SLOT(onOpenBrowser(QUrl)));
     connect(o1, SIGNAL(closeBrowser()), this, SLOT(onCloseBrowser()));
     
-    // o1->unlink();   // zasto ?  da dobijem novi token i ne samo to - opet me salje na Flickr autorizaciju !!!
-    // o1->link();
-    
-    // dobijem response u browseru 
-    // http://127.0.0.1:1965/?oauth_token=72157673872385264-92d702df4c6af184&oauth_verifier=caaca108414644b4
-    // http://127.0.0.1:1965/?oauth_token=72157676203442311-dfeaed909905c95b&oauth_verifier=ba2a573bfc0e5d18
+    // o1->unlink();   // zasto ?  da dobijem novi token - opet me salje na Flickr autorizaciju !!!
     
     manager = new QNetworkAccessManager(this);
     requestor =  new O1Requestor(manager, o1, this);   
@@ -75,9 +70,6 @@ Mauth::Mauth(QWidget *parent) : QObject(parent)
     
     dole = this;
     gore = (MainWindow*) parent;
-   
-    // test_echo();
-    // test_login();
   
 }
 
@@ -85,22 +77,23 @@ Mauth::Mauth(QWidget *parent) : QObject(parent)
 void Mauth::onLinkedChanged() 
 {
         
-    qDebug() << "linked changed vidim sada ...";
+    qDebug() << "linked changed ...";
 }
 
 void Mauth::onLinkingFailed() 
 {
-    qDebug() << "linking failed kako kaze ... ";
+    qDebug() << "linking failed ... ";
 }
 
 void Mauth::onLinkingSucceeded() 
 {
-    qDebug() << "procedura link/unlink gotova ";
+    // qDebug() << "procedura link/unlink finished ";
+    emit o1_linked(true);
 }
 
 void Mauth::onOpenBrowser(const QUrl &url)
 {
-    qDebug() << "evo otvaram firefox ... ";
+    qDebug() << "open firefox ... ";
     QDesktopServices::openUrl(url);
 }
 
@@ -118,6 +111,7 @@ void Mauth::ulnk()
 {
     o1->unlink();
 }
+
 
 void Mauth::activity_comments()
 {
@@ -243,6 +237,45 @@ void Mauth::get_osobne()
     connect(reply, SIGNAL(finished()), dole, SLOT( flikPersonal() ) );
 
     qDebug() <<  "moje slike od " << mes5 << " do " << mes4;
+}
+
+void Mauth::search_tags()
+{
+    QUrl url1 = QUrl("https://www.flickr.com/services/rest/");
+    
+    QList<O0RequestParameter> reqParams = QList<O0RequestParameter>();
+    QByteArray paramName1("method");
+    QString mes1 = QString("flickr.photos.search");
+    reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
+    QByteArray paramName2("api-key");
+    QString mes2 = QString(O1_KEY);
+    reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
+    // QByteArray paramName3("user_id");
+    // QString mes3 = QString(USER_ID);
+    // reqParams << O0RequestParameter(paramName3, mes3.toLatin1());
+    QByteArray paramName3("tags");
+    QString mes3 = gore->tag;  // QString("decoration");   
+    reqParams << O0RequestParameter(paramName3, mes3.toLatin1());
+    QByteArray paramName4("max_upload_date");
+    QString mes4 = gore->date_to; // QString::number(unixtime);
+    reqParams << O0RequestParameter(paramName4, mes4.toLatin1());
+    QByteArray paramName5("min_upload_date");
+    QString mes5 = gore->date_from;  // QString::number(unixtime);
+    reqParams << O0RequestParameter(paramName5, mes5.toLatin1());
+    QByteArray paramName6("extras");
+    QString mes6 = QString("owner_name");     
+    reqParams << O0RequestParameter(paramName6, mes6.toLatin1());
+    QByteArray paramName7("privacy_filter");
+    QString mes7 = QString("1");     // 1- public
+    reqParams << O0RequestParameter(paramName7, mes7.toLatin1());
+    
+    QByteArray postData = O1::createQueryParameters(reqParams);
+    QNetworkRequest request(url1);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
+    QNetworkReply *reply = requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), dole, SLOT( searchTags() ) );
+
+    qDebug() <<  "public from " << mes5 << " to " << mes4;
 }
 
 void Mauth::stats_suma()
@@ -477,9 +510,8 @@ void Mauth::flikFavorites()
             QString mstr = "https://farm" + f1.m_farm + ".staticflickr.com/" + f1.m_server + "/" + f1.m_id + "_" + f1.m_secret + "_m.jpg"; 
             qDebug() << mstr;
             
-            QUrl imageUrl(mstr);
-            m_photo = new PhotoDown(imageUrl, dole);
-            connect(m_photo, SIGNAL (downloaded()), dole, SLOT (loadImage()));
+            // QUrl imageUrl(mstr);
+            // connect(m_photo, SIGNAL (downloaded()), dole, SLOT (loadImage()));
         }
                 
     }
@@ -533,15 +565,87 @@ void Mauth::flikPersonal()
     }
 }
 
+void Mauth::searchTags()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (reply->error() != QNetworkReply::NoError) 
+    {
+        qDebug() << "ERR: " << reply->errorString();
+        qDebug() << "Text: " << reply->readAll();
+    }
+    else
+    {
+        
+        QByteArray data = reply->readAll();
+        qDebug() << data;
+        
+        QDomNode node;
+        QDomElement elem, v;
+        QDomDocument doc;
+        doc.setContent(data);
+        
+        db->removeAllTagirane();             // reset last query 
+        qDebug() << " xml parser ... ";
+        
+        Favorites f1;
+        // QList<Favorites> list2;
+        QDomNodeList list1 = doc.elementsByTagName("photo");
+        
+        int m_limit = 30;   // TODO put this limit to Settings
+        
+        if (list1.count() < m_limit)
+        {
+            m_limit = list1.count();
+        }
+        
+        for(int i = 0 ; i <  m_limit; i++)
+        {
+            node = list1.item(i);
+            elem = node.toElement(); 
+            if (elem.hasAttribute("id")) f1.m_id = elem.attribute("id");
+            if (elem.hasAttribute("owner")) f1.m_owner = elem.attribute("owner");
+            if (elem.hasAttribute("ownername")) f1.m_ownername = elem.attribute("ownername");
+            if (elem.hasAttribute("secret")) f1.m_secret = elem.attribute("secret");
+            if (elem.hasAttribute("server")) f1.m_server = elem.attribute("server");
+            if (elem.hasAttribute("farm")) f1.m_farm = elem.attribute("farm");
+            if (elem.hasAttribute("title")) f1.m_title = elem.attribute("title");
+            
+            // list2.append(k1);
+            // https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}_[mstzb].jpg
+            
+            QString m_url =  "https://farm"+f1.m_farm+".staticflickr.com/"+f1.m_server+"/"+f1.m_id+"_"+f1.m_secret+"_z.jpg"; 
+            // qDebug() << m_url;
+            QString m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+            
+            // db->addTagirane(f1.m_id,f1.m_owner,f1.m_secret,f1.m_server,f1.m_farm,f1.m_title,f1.m_ownername); 
+            
+            gore->down_start(m_url, m_name);        // wait to download ...
+             
+        
+        }
+        
+        
+        
+        qDebug() << " db tagirane saved ";
+        
+         
+    }
+}
+
 void Mauth::print_osobne()
 {
     db->printPhotos();
 }
 
+void Mauth::print_tagirane()
+{
+    db->printTagirane();
+}
+
 void Mauth::loadImage()
 {
     QPixmap buttonImage;
-    buttonImage.loadFromData(m_photo->downloadedData());
+    // buttonImage.loadFromData(m_photo->downloadedData());
 }
 
 void Mauth::respStatSuma()

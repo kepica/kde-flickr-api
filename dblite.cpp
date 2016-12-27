@@ -133,17 +133,6 @@ bool DBlite::removeAllPhoto()
     return success;
 }
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    
-
 bool DBlite::photoExists(const QString &id) const
 {
     bool exists = false;
@@ -184,4 +173,64 @@ void DBlite::printPhotos() const
 }
     
         
+bool DBlite::addTagirane(const QString &id, const QString &owner, const QString &secret, const QString &server,
+                      const QString &farm, const QString &title, const QString &ownername)
+{
+    bool success = false;
+    
+        QSqlQuery m_ery;
+        m_ery.prepare("INSERT INTO tagirane (id,owner,secret,server,farm,title,ownername)"
+                        "VALUES (:id,:owner,:secret,:server,:farm,:title,:ownername)");
+    
+    m_ery.bindValue(":id",id);
+    m_ery.bindValue(":owner",owner);
+    m_ery.bindValue(":secret",secret);
+    m_ery.bindValue(":server",server);
+    m_ery.bindValue(":farm",farm);
+    m_ery.bindValue(":title",title);
+    m_ery.bindValue(":ownername",ownername);
+    
+    if (m_ery.exec())
+    {
+        success = true;
+    }
+    else
+    {
+        qDebug() << "insert error: " << m_ery.lastError();
+    }
+    return success;
+}
+
+bool DBlite::removeAllTagirane()
+{
+    bool success = false;
+    
+    QSqlQuery m_ery;
+    m_ery.prepare("DELETE FROM tagirane");
+    if ( m_ery.exec() )
+    {
+        success = true;
+    }
+    else
+    {
+        qDebug() << " remove all error " << m_ery.lastError();
+    }
+    return success;
+}
+
+void DBlite::printTagirane() const
+{
+    QSqlQuery m_ery("SELECT * FROM tagirane");
+    int i_id, i_owner, i_secret;
+    i_id = m_ery.record().indexOf("id");
+    i_owner = m_ery.record().indexOf("owner");
+    i_secret = m_ery.record().indexOf("secret");
+    while (m_ery.next())
+    {
+        QString id = m_ery.value(i_id).toString();
+        QString owner = m_ery.value(i_owner).toString();
+        QString secret = m_ery.value(i_secret).toString();
+        qDebug() << id << owner << secret;
+    }
+}
 

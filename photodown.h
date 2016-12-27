@@ -1,6 +1,9 @@
 #ifndef PHOTODOWN_H
 #define PHOTODOWN_H
  
+#include <QFile>
+#include <QUrl>
+
 #include <QObject>
 #include <QByteArray>
 #include <QNetworkAccessManager>
@@ -11,20 +14,28 @@ class PhotoDown : public QObject
 {
     Q_OBJECT
     public:
-        explicit PhotoDown(QUrl imageUrl, QObject *parent = 0);
+        explicit PhotoDown(QObject *parent = 0);
         virtual ~PhotoDown();
         
-        QByteArray downloadedData() const;
+        void setFile(QString fileURL, QString name, QString subdir);
+        
  
     signals:
-        void downloaded();
- 
+        // void downloaded(QString name);
+        void transfer(QString trans);
+        void done();        // download + write
+        
     private slots:
-        void fileDownloaded(QNetworkReply* pReply);
+        void onDownloadProgress(qint64,qint64);
+        void onFinished(QNetworkReply*);
+        void onReadyRead();
+        void onReplyFinished();
  
     private:
-        QNetworkAccessManager m_WebCtrl;
-        QByteArray m_DownloadedData;
+        QNetworkAccessManager *manager;
+        QNetworkReply *reply;
+        QFile *file;
+        QString m_name;
 };
  
 #endif 

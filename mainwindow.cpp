@@ -1,5 +1,7 @@
 #include <QApplication>
 #include <QAction>
+#include <QEventLoop>
+#include <QDir>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -19,22 +21,25 @@
 #include "mauth.h"
 #include "notice.h"
 #include "notica.h"
+#include "waitsignal.h"
+#include "photodown.h"
 #include "mainwindow.h"
 
 Notice *obav;
 Notica *oblak;
 Mauth *flkr;
+PhotoDown *m_photo;
 
 
 
 
 MainWindow::MainWindow(QWidget *parent) : KXmlGuiWindow(parent)
 {
-    QFrame *okvir;
+    // QFrame *okvir;
     // QPixmap *slika;
-    okvir  = new QFrame();
-    okvir->setFrameStyle(QFrame::StyledPanel);
-    okvir->setStyleSheet("background-image: slika");
+    // okvir  = new QFrame();
+    // okvir->setFrameStyle(QFrame::StyledPanel);
+    // okvir->setStyleSheet("background-image: slika");
     // url(/home/vjeko/bin/geko-mali.jpg)
     // QVBoxLayout *tabla = new QVBoxLayout();
     // okvir->setLayout(tabla);
@@ -42,23 +47,40 @@ MainWindow::MainWindow(QWidget *parent) : KXmlGuiWindow(parent)
     // QBrush *brush  = new QBrush(*slika);
     // slika = new QPixmap();
     // slika->load("/home/vjeko/bin/geko-mali.jpg");
-    // textArea = new KTextEdit();
-   // tabla->addWidget((QWidget*) textArea);
+    // tabla->addWidget((QWidget*) textArea);
     // tabla->addWidget(new QPushButton("Click me!"));
     // pal.setBrush(QPalette::Background, *brush);
-    
     // QPalette pal; 
     // pal.setBrush( okvir->backgroundRole(), QBrush( QImage( "/home/vjeko/bin/geko-mali.jpg" ) ) );
     // okvir->setPalette(pal);  
-    setCentralWidget(okvir);
+    
+    textArea = new KTextEdit();
+    setCentralWidget(textArea);
   
     obav = new Notice(this);   // u system tray
     oblak = new Notica(this);   // u system tray
     flkr = new Mauth(this);    // oAuth 
   
+    connect( flkr, SIGNAL( o1_linked(bool) ), this, SLOT(oauth_link(bool) ) );
   
-    poruka = i18n("Ona gušteruša je opet stavila sliku na Flickr !");
-  // koji_kveri = 2;   // 1- echo , 2- login
+    poruka = i18n("Ona posvuduša je opet stavila sliku na Flickr !");
+    
+    date_from = QString("1477550147");
+    date_to = QString("1480142147");
+    
+    tag = QString("decorations");
+    savePath = QString("/home/vjeko/slike/")+tag;
+    QDir dir(savePath);
+    if ( !dir.exists() )
+    {
+        dir.mkpath(".");
+    }
+    
+    m_photo =  new PhotoDown(this);       // downloadad + save
+    
+    connect( m_photo, SIGNAL( done() ), this, SLOT(down_done() ) );
+    // connect( m_photo, SIGNAL( downloaded(QString) ), this, SLOT(down_down(QString) ) );
+    connect( m_photo, SIGNAL( transfer(QString) ), this, SLOT(down_transfer(QString) ) );
   
     setupActions();
 }
@@ -152,6 +174,18 @@ void MainWindow::setupActions()
     actionCollection()->addAction("print", printAction);
     connect(printAction, SIGNAL(triggered(bool)), flkr, SLOT( print_osobne() ) );
    
+    QAction* listAction = new QAction(this);
+    listAction->setText(i18n("&List sql tagirane"));
+    actionCollection()->setDefaultShortcut(listAction, Qt::CTRL + Qt::Key_C);
+    actionCollection()->addAction("list", listAction);
+    connect(listAction, SIGNAL(triggered(bool)), flkr, SLOT( print_tagirane() ) );
+   
+    QAction* tagsAction = new QAction(this);
+    tagsAction->setText(i18n("&Search by tag"));
+    actionCollection()->setDefaultShortcut(tagsAction, Qt::CTRL + Qt::Key_T);
+    actionCollection()->addAction("tags", tagsAction);
+    connect(tagsAction, SIGNAL(triggered(bool)), flkr, SLOT( search_tags() ) );
+   
     KStandardAction::quit(qApp, SLOT(quit()), actionCollection());
 
     
@@ -159,4 +193,47 @@ void MainWindow::setupActions()
     setupGUI(Default, "oblaciui.rc");
 }
 
+void MainWindow::down_done()
+{
+    // qDebug() << " download + writ
+}
 
+void MainWindow::oauth_link(bool flag)
+{
+    if (flag)
+    {
+        textArea->append(QString("*** LINK to flickr ok "));
+    }
+    else
+    {
+        qDebug() << "link fail";
+    }
+}
+
+/*
+void MainWindow::down_down(QString name)
+{
+    textArea->append(QString("--- downloaded: ")+name);
+}
+*/
+
+void MainWindow::down_transfer(QString str)
+{
+    // qDebug() << " transfer " << str;
+    textArea->append(str);
+}
+
+void MainWindow::down_start(QString url, QString name)
+{
+    WaitSignal pause((QObject*) m_photo, SIGNAL( done()) );
+    m_photo->setFile(url, name, savePath);
+    
+    if ( pause.wait(60100) )
+    {
+        textArea->append(QString("*** saved: ")+name);
+    }
+    else
+    {
+        qDebug() << "istekla 1 minuta";
+    }
+}

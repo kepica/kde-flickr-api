@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gui name="oblaci"
-     version="19"
+     version="22"
      xmlns="http://www.kde.org/standards/kxmlgui/1.0"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0
@@ -10,9 +10,10 @@
     <Menu name="file" >
       <Action name="clear" />
       <Action name="print" />
+      <Action name="list" />
     </Menu>
     <Menu name="Obavijesti" >
-      <text>O&amp;bavijesti</text>
+      <text>N&amp;otify</text>
       <Action name="clear" />
       <Action name="pokaz" />
       <Action name="balon" />
@@ -25,11 +26,12 @@
       <Action name="comments" />
     </Menu >
     <Menu name="Stats" >
-      <text>S&amp;tatistics</text>
+      <text>S&amp;earch</text>
       <Action name="statphoto" />
       <Action name="statsum" />
       <Action name="favorites" />
       <Action name="osobne" />
+      <Action name="tags" />
     </Menu >
   </MenuBar>
  
