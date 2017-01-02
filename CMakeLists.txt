@@ -19,6 +19,8 @@ option(o2_WITH_OAUTH1 "use o1" ON)
 
 set(oblaci_SRCS main.cpp mainwindow.cpp notice.cpp notica.cpp mauth.cpp komentar.cpp favorites.cpp photodown.cpp dblite.cpp waitsignal.cpp
     mainwindow.h notice.h notica.h mauth.h komentar.h favorites.h photodown.h dblite.h waitsignal.h
+    postavke.cpp welcome.cpp people.cpp
+    postavke.h welcome.h people.h
     o0baseauth.cpp o0settingsstore.cpp o1.cpp o1requestor.cpp o1timedreply.cpp
     o0abstractstore.h o0baseauth.h o0globals.h o0requestparameter.h o0settingsstore.h o0simplecrypt.h
     o2.cpp o2reply.cpp o2replyserver.cpp o2requestor.cpp o2simplecrypt.cpp 
@@ -55,10 +57,6 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
     Notifications   # obavijesti
 )
 
-# WTF ???
-# find_package(KDE4 REQUIRED)
-# include_directories(${KDE4_INCLUDES})
-
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
     
 
@@ -78,6 +76,8 @@ target_link_libraries(oblaci
 
 install(TARGETS oblaci  ${INSTALL_TARGETS_DEFAULT_ARGS})
 install(FILES oblaciui.rc DESTINATION ${KXMLGUI_INSTALL_DIR}/oblaci)
+install(FILES ./rsc/angel_s.jpg DESTINATION $<TARGET_FILE_DIR:oblaci>)
+install(FILES ./rsc/angel_s.jpg DESTINATION bin )
 # install( PROGRAMS oblaci.desktop DESTINATION ${XDG_APPS_INSTALL_DIR} )
 # install(FILES oblaci.notifyrc DESTINATION ${KNOTIFYRC_INSTALL_DIR} )
 

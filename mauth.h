@@ -3,46 +3,44 @@
  
 #include <QObject>
 
+class QSettings;
+class O1Requestor;
  
 class Mauth : public QObject
 {
     Q_OBJECT
     
     public:
-        Mauth(QWidget *parent=0);
+        Mauth(QWidget *parent=0, QSettings *mset=0, O1Requestor *o1req=0);
         virtual ~Mauth() {};
-         
+        
+        
     public Q_SLOTS:
         
-        void lnk();
-        void ulnk();
         void activity_comments();
         void photo_comments();
         void get_favorites();
-        void get_osobne();
+        
+        void get_groups();
         void search_tags();
-        void print_osobne();
-        void print_tagirane();
+        void search_pools();
+        // void print_osobne();
+        // void print_tagirane();
         void stats_photo();
         void stats_suma();
         void test_echo();
         void test_login();
     
-    Q_SIGNALS:
-        
-        void o1_linked(bool flag);
+   
         
     private slots:
-        void onLinkedChanged(); 
-        void onLinkingFailed(); 
-        void onLinkingSucceeded(); 
-        void onOpenBrowser(const QUrl &url); 
-        void onCloseBrowser(); 
+       
         void flikResponse();
         void flikComments();
         void flikFavorites();
-        void flikPersonal();
+
         void searchTags();
+        void searchPools();
         void respStatSuma();
         void respStatPhoto();
         void loadImage();

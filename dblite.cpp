@@ -11,35 +11,21 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlRecord>
+#include <QSqlDatabase>
 #include <QDebug>
 #include <KLocalizedString>
 #include <KActionCollection>
 #include <KStandardAction>
 
-
-#include "favorites.h"
-#include "komentar.h"
-#include "mainwindow.h"
 #include "dblite.h"
-
-MainWindow *gor3;
-DBlite *dol3;
-
-
-
    
-DBlite::DBlite(QWidget *parent, const QString &path) : QObject(parent)
+QSqlDatabase m_db;
+
+DBlite::DBlite(const QString &path) : QObject()
 {
     m_db = QSqlDatabase::addDatabase("QSQLITE");
-    m_db.setDatabaseName(path);
-    
-    if ( !m_db.open() )
-    {
-        qDebug() << "error-db: wrong path ?";
-    }
-    
-    dol3 = this;
-    gor3 = (MainWindow*) parent;
+    m_db.setDatabaseName(path);    
+    m_db.open();
 }
 
 DBlite::~DBlite()
@@ -52,8 +38,59 @@ DBlite::~DBlite()
 
 bool DBlite::isOpen() const
 {
-    return m_db.isOpen();
+    if (m_db.isOpen())
+    {
+        // qDebug() << "error-db: wrong path ?";
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
+
+/*
+bool DBlite::editPostavke(int koji, const QString &dir, bool flag_r, bool flag_d)
+{
+    bool success = false;
+    QSqlQuery m_ery;
+    
+    switch (koji)
+    {
+        case 0:
+        m_ery.prepare("UPDATE postavke SET flag_root= :f1, flag_down= :f2, root_dir=':dir' WHERE 1");
+        m_ery.bindValue(":f1", flag_r);
+        m_ery.bindValue(":f2", flag_d);
+        m_ery.bindValue(":dir", dir);
+        break;
+        
+        case 1:
+        m_ery.prepare("UPDATE postavke SET flag_root= :f1 WHERE 1");
+        m_ery.bindValue(":f1", flag_r);
+        break;
+        
+        case 2:
+        m_ery.prepare("UPDATE postavke SET flag_down= :f2 WHERE 1");
+        m_ery.bindValue(":f2", flag_d);
+        break;
+        
+        case 3:
+        m_ery.prepare("UPDATE postavke SET root_dir=':dir' WHERE 1");
+        m_ery.bindValue(":dir", dir);
+        break;
+    }
+    if (m_ery.exec())
+    {
+        success = true;
+    }
+    else
+    {
+        qDebug() << "edit postavke error: " << m_ery.lastError();
+    }
+   
+   return success;
+}
+*/
 
 bool DBlite::addPhoto(const QString &id, const QString &owner, const QString &secret, const QString &server,
                       const QString &farm, const QString &title, const QString &tags, const QString &dateupload, 
@@ -234,3 +271,55 @@ void DBlite::printTagirane() const
     }
 }
 
+bool DBlite::addPeople(const QString &id, const QString &name, const QString &nick, const QString &server)
+{
+    bool success = false;
+    
+    if ( !userExists(id) )
+    {
+        QSqlQuery m_ery;
+        m_ery.prepare("INSERT INTO people (id,name,nick,server)"
+                        "VALUES (:id,:name,:nick,:server)");
+    
+        m_ery.bindValue(":id",id);
+        m_ery.bindValue(":name",name);
+        m_ery.bindValue(":nick",nick);
+        m_ery.bindValue(":server",server);
+    
+        if (m_ery.exec())
+        {
+            success = true;
+        }
+        else
+        {
+            qDebug() << "insert error: " << m_ery.lastError();
+        }
+    }
+    else
+    {
+        qDebug() << "user exists ";
+    }
+    return success;
+}
+
+bool DBlite::userExists(const QString &id) const
+{
+    bool exists = false;
+    
+    QSqlQuery m_ery;
+    m_ery.prepare("SELECT id FROM people WHERE id = (:id)");
+    m_ery.bindValue(":id", id);
+    
+    if ( m_ery.exec())
+    {
+        if (m_ery.next())
+        {
+            exists = true;
+        }
+    }
+    else
+    {
+        qDebug() << " error " << m_ery.lastError();
+    }
+    return exists;
+}

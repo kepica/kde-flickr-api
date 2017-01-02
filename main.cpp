@@ -1,17 +1,24 @@
 #include <cstdlib>
  
 #include <QApplication>
+#include <QCoreApplication>
+#include <QDialog>
+#include <QSettings>
+#include <QDebug>
 #include <QCommandLineParser>
 
 #include <KAboutData>
 #include <KLocalizedString>
 
+#include "welcome.h"
 #include "mainwindow.h"
  
 int main (int argc, char *argv[])
 {
     QApplication app(argc, argv);
     KLocalizedString::setApplicationDomain("oblaci");
+    QCoreApplication::setApplicationName("oblaci");
+    QCoreApplication::setOrganizationName("vedra_nebesa");
     
     KAboutData aboutData(
                          // The program name used internally. (componentName)
@@ -46,6 +53,27 @@ int main (int argc, char *argv[])
     aboutData.processCommandLine(&parser);
     
     MainWindow* window = new MainWindow();
+    QSettings mset;
+    
+    if (mset.value("pic_root_dir", "none") == "none")
+    {
+        // --- pic_root not set
+        Welcome* welcome = new Welcome(0);
+        welcome->exec();
+    }
+    else if (mset.value("flickr_user_id", "none") == "none")
+    {
+        // ---- started, but flickr_id not set
+        Welcome* welcome = new Welcome(1);
+        welcome->exec();
+    }
+    else if (mset.value("welcome_disabled", "none") != "disabled")
+    {
+        Welcome* welcome = new Welcome(2);
+        welcome->exec();
+    }
+    
+    // if (welcome.exec() == QDialog::Accepted)
     window->show();
     
     return app.exec();

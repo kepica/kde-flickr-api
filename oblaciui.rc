@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gui name="oblaci"
-     version="22"
+     version="27"
      xmlns="http://www.kde.org/standards/kxmlgui/1.0"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0
@@ -8,30 +8,34 @@
  
   <MenuBar>
     <Menu name="file" >
+      <text>Tools</text>
       <Action name="clear" />
       <Action name="print" />
       <Action name="list" />
+      <Action name="postavke" />
     </Menu>
-    <Menu name="Obavijesti" >
+    <Menu name="obavijesti" >
       <text>N&amp;otify</text>
-      <Action name="clear" />
       <Action name="pokaz" />
       <Action name="balon" />
+      <Action name="comments" />
+      <Action name="groups" />
     </Menu >
-     <Menu name="Flickr" >
+     <Menu name="flickr" >
       <text>F&amp;lickr</text>
       <Action name="echotest" />
       <Action name="logintest" />
-      <Action name="link" />
-      <Action name="comments" />
-    </Menu >
-    <Menu name="Stats" >
-      <text>S&amp;earch</text>
       <Action name="statphoto" />
       <Action name="statsum" />
+      <Action name="frend" />
       <Action name="favorites" />
+      <Action name="link" />
+    </Menu >
+    <Menu name="search" >
+      <text>S&amp;earch</text>
       <Action name="osobne" />
       <Action name="tags" />
+      <Action name="pools" />
     </Menu >
   </MenuBar>
  

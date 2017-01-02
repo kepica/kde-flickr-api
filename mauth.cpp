@@ -1,23 +1,24 @@
 #include <QApplication>
 #include <QAction>
 #include <QNetworkAccessManager>
-#include <QDesktopServices>
+
 #include <QDomDocument>
 #include <QDomElement>
 #include <QDomNode>
 #include <QDomNodeList>
-#include <QFile>
-#include <QDateTime>
+// #include <QFile>
+// #include <QDir>
+// #include <QDateTime>
+#include <QSettings>
 #include <KLocalizedString>
 #include <KActionCollection>
 #include <KStandardAction>
 
 #include "o1.h"
-// #include "o0baseauth.h"
 #include "o0globals.h"
 #include "o1requestor.h"
 
-#include "dblite.h"
+
 #include "photodown.h"
 #include "favorites.h"
 #include "komentar.h"
@@ -25,92 +26,24 @@
 #include "mauth.h"
 
 MainWindow *gore;
-Mauth *dole;
-
-DBlite *db;
-
-const char O1_KEY[] = "put-your-key";
-const char O1_SECRET[] = "put-your-secret";
-const char USER_ID[] = "put-your-id";  
+// Mauth *dole;
 
 
-O1 *o1;
-QNetworkAccessManager *manager;
-O1Requestor *requestor;   
-
+O1Requestor *m_requestor;   
+QSettings *m_set;  
    
-Mauth::Mauth(QWidget *parent) : QObject(parent)
+Mauth::Mauth(QWidget *parent, QSettings *mset, O1Requestor *o1req) : QObject(parent)
 {
-    o1 = new O1(this);
-    
-    o1->setClientId(O1_KEY);
-    o1->setClientSecret(O1_SECRET);
-        
-    o1->setRequestTokenUrl(QUrl("https://www.flickr.com/services/oauth/request_token"));
-    o1->setAuthorizeUrl(QUrl("https://www.flickr.com/services/oauth/authorize?perms=write"));  // write read
-    o1->setAccessTokenUrl(QUrl("https://www.flickr.com/services/oauth/access_token"));
-        
-    connect(o1, SIGNAL( linkedChanged() ), this, SLOT( onLinkedChanged() ) );
-    connect(o1, SIGNAL(linkingFailed()), this, SLOT(onLinkingFailed()));
-    connect(o1, SIGNAL(linkingSucceeded()), this, SLOT(onLinkingSucceeded()));
-    connect(o1, SIGNAL(openBrowser(QUrl)), this, SLOT(onOpenBrowser(QUrl)));
-    connect(o1, SIGNAL(closeBrowser()), this, SLOT(onCloseBrowser()));
-    
-    // o1->unlink();   // zasto ?  da dobijem novi token - opet me salje na Flickr autorizaciju !!!
-    
-    manager = new QNetworkAccessManager(this);
-    requestor =  new O1Requestor(manager, o1, this);   
-   
-    db = new DBlite(parent, QString("/home/vjeko/bin/flickr.db"));
-    
-    if (db->isOpen())
-    {
-        qDebug() << " db ok";
-    }
-    
-    dole = this;
     gore = (MainWindow*) parent;
+    m_set = mset;  // local copy
+    m_requestor = o1req;
+    
   
 }
 
 
-void Mauth::onLinkedChanged() 
-{
-        
-    qDebug() << "linked changed ...";
-}
 
-void Mauth::onLinkingFailed() 
-{
-    qDebug() << "linking failed ... ";
-}
 
-void Mauth::onLinkingSucceeded() 
-{
-    // qDebug() << "procedura link/unlink finished ";
-    emit o1_linked(true);
-}
-
-void Mauth::onOpenBrowser(const QUrl &url)
-{
-    qDebug() << "open firefox ... ";
-    QDesktopServices::openUrl(url);
-}
-
-void Mauth::onCloseBrowser()
-{
-    qDebug() << "browser closed";
-}
-
-void Mauth::lnk()
-{
-    o1->link();
-}
-
-void Mauth::ulnk()
-{
-    o1->unlink();
-}
 
 
 void Mauth::activity_comments()
@@ -122,7 +55,7 @@ void Mauth::activity_comments()
     QString mes1 = QString("flickr.activity.userComments");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     QByteArray paramName3("per-page");
     QString mes3 = QString("30");
@@ -131,8 +64,8 @@ void Mauth::activity_comments()
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( flikComments() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( flikComments() ) );
 
     qDebug() << "activity comments START ";
 }
@@ -148,7 +81,7 @@ void Mauth::photo_comments()
     QString mes1 = QString("flickr.photos.comments.getList");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     QByteArray paramName3("photo_id");
     QString mes3 = QString("29903216193");
@@ -164,8 +97,8 @@ void Mauth::photo_comments()
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( flikComments() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( flikComments() ) );
 
     qDebug() << "od " << mes5 << " do " << mes4;
 }
@@ -181,7 +114,7 @@ void Mauth::get_favorites()
     QString mes1 = QString("flickr.favorites.getList");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     QByteArray paramName3("per_page");
     QString mes3 = QString("30");
@@ -197,46 +130,36 @@ void Mauth::get_favorites()
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( flikFavorites() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( flikFavorites() ) );
 
     qDebug() <<  "favorites";  // "od " << mes5 << " do " << mes4;
 }
 
-void Mauth::get_osobne()
+
+void Mauth::get_groups()
 {
-    qint64 unixtime_sada = QDateTime::currentMSecsSinceEpoch()/1000;
-    qint64 unixtime_prije = unixtime_sada - 7 * 86400;
     
     QUrl url1 = QUrl("https://www.flickr.com/services/rest/");
     
     QList<O0RequestParameter> reqParams = QList<O0RequestParameter>();
     QByteArray paramName1("method");
-    QString mes1 = QString("flickr.people.getPhotos");
+    QString mes1 = QString("flickr.groups.pools.getGroups");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
-    QByteArray paramName3("user_id");
-    QString mes3 = QString(USER_ID);
-    reqParams << O0RequestParameter(paramName3, mes3.toLatin1());
-    QByteArray paramName4("max_upload_date");
-    QString mes4 = QString::number(unixtime_sada);
-    reqParams << O0RequestParameter(paramName4, mes4.toLatin1());
-    QByteArray paramName5("min_upload_date");
-    QString mes5 = QString::number(unixtime_prije);
-    reqParams << O0RequestParameter(paramName5, mes5.toLatin1());
-    QByteArray paramName6("extras");
-    QString mes6 = QString("tags, date_upload, owner_name");
-    reqParams << O0RequestParameter(paramName6, mes6.toLatin1());
+    // QByteArray paramName6("extras");
+    // QString mes6 = QString("tags, date_upload, owner_name");
+    // reqParams << O0RequestParameter(paramName6, mes6.toLatin1());
     
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( flikPersonal() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( flikResponse() ) );
 
-    qDebug() <<  "moje slike od " << mes5 << " do " << mes4;
+    qDebug() <<  "get groups ";
 }
 
 void Mauth::search_tags()
@@ -248,7 +171,7 @@ void Mauth::search_tags()
     QString mes1 = QString("flickr.photos.search");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     // QByteArray paramName3("user_id");
     // QString mes3 = QString(USER_ID);
@@ -272,10 +195,40 @@ void Mauth::search_tags()
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( searchTags() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( searchTags() ) );
 
     qDebug() <<  "public from " << mes5 << " to " << mes4;
+}
+
+void Mauth::search_pools()
+{
+    QUrl url1 = QUrl("https://www.flickr.com/services/rest/");
+    
+    QList<O0RequestParameter> reqParams = QList<O0RequestParameter>();
+    QByteArray paramName1("method");
+    QString mes1 = QString("flickr.groups.pools.getPhotos");
+    reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
+    QByteArray paramName2("api-key");
+    QString mes2 = gore->o1_key;
+    reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
+    QByteArray paramName3("group_id");
+    QString mes3 = QString("2389839@N23");   // in-explore
+    reqParams << O0RequestParameter(paramName3, mes3.toLatin1());
+    // QByteArray paramName3("tags");
+    // QString mes3 = gore->tag;  // QString("decoration");   
+    // reqParams << O0RequestParameter(paramName3, mes3.toLatin1());
+    QByteArray paramName4("extras");
+    QString mes4 = QString("owner_name");     
+    reqParams << O0RequestParameter(paramName4, mes4.toLatin1());
+    
+    QByteArray postData = O1::createQueryParameters(reqParams);
+    QNetworkRequest request(url1);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( searchPools() ) );
+
+    qDebug() <<  "inexplore pool ";
 }
 
 void Mauth::stats_suma()
@@ -287,7 +240,7 @@ void Mauth::stats_suma()
     QString mes1 = QString("flickr.stats.getTotalViews");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     // QByteArray paramName3("date");
     // QString mes3 = QString("2016-12-16");
@@ -296,8 +249,8 @@ void Mauth::stats_suma()
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( respStatSuma() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( respStatSuma() ) );
 
     qDebug() << "stats suma START ";
 }
@@ -311,7 +264,7 @@ void Mauth::stats_photo()
     QString mes1 = QString("flickr.stats.getPhotoStats");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     QByteArray paramName3("date");
     QString mes3 = QString("2016-12-16");
@@ -323,8 +276,8 @@ void Mauth::stats_photo()
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( respStatPhoto() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( respStatPhoto() ) );
 
     qDebug() << "stats photo START ";
 }
@@ -339,14 +292,14 @@ void Mauth::test_echo()
     QString mes1 = QString("flickr.test.echo");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( flikResponse() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( flikResponse() ) );
 
     qDebug() << "test echo START ";
     
@@ -360,14 +313,14 @@ void Mauth::test_login()
     QString mes1 = QString("flickr.test.login");
     reqParams << O0RequestParameter(paramName1, mes1.toLatin1());
     QByteArray paramName2("api-key");
-    QString mes2 = QString(O1_KEY);
+    QString mes2 = gore->o1_key;
     reqParams << O0RequestParameter(paramName2, mes2.toLatin1());
     
     QByteArray postData = O1::createQueryParameters(reqParams);
     QNetworkRequest request(url1);
     request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
-    QNetworkReply *reply = requestor->post(request, reqParams, postData);
-    connect(reply, SIGNAL(finished()), dole, SLOT( flikResponse() ) );
+    QNetworkReply *reply = m_requestor->post(request, reqParams, postData);
+    connect(reply, SIGNAL(finished()), this, SLOT( flikResponse() ) );
 
     qDebug() << "test login START ";
     
@@ -384,9 +337,8 @@ void Mauth::flikResponse()
     }
     else
     {
-        qDebug() << "response";
         QByteArray data = reply->readAll();
-        qDebug() << reply->readAll();
+        qDebug() << data;
     }
 }
 
@@ -517,53 +469,6 @@ void Mauth::flikFavorites()
     }
 }
 
-void Mauth::flikPersonal()
-{
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
-    if (reply->error() != QNetworkReply::NoError) 
-    {
-        qDebug() << "ERR: " << reply->errorString();
-        qDebug() << "Text: " << reply->readAll();
-    }
-    else
-    {
-        
-        QByteArray data = reply->readAll();
-        qDebug() << data;
-        
-        QDomNode node;
-        QDomElement elem, v;
-        QDomDocument doc;
-        doc.setContent(data);
-        
-        qDebug() << " xml parser ... ";
-        
-        Favorites f1;
-        // QList<Favorites> list2;
-        QDomNodeList list1 = doc.elementsByTagName("photo");
-        for(int i = 0 ; i < list1.count() ; i++)
-        {
-            node = list1.item(i);
-            elem = node.toElement(); 
-            if (elem.hasAttribute("id")) f1.m_id = elem.attribute("id");
-            if (elem.hasAttribute("owner")) f1.m_owner = elem.attribute("owner");
-            if (elem.hasAttribute("ownername")) f1.m_ownername = elem.attribute("ownername");
-            if (elem.hasAttribute("secret")) f1.m_secret = elem.attribute("secret");
-            if (elem.hasAttribute("server")) f1.m_server = elem.attribute("server");
-            if (elem.hasAttribute("farm")) f1.m_farm = elem.attribute("farm");
-            if (elem.hasAttribute("title")) f1.m_title = elem.attribute("title");
-            if (elem.hasAttribute("tags")) f1.m_tags = elem.attribute("tags");
-            if (elem.hasAttribute("dateupload")) f1.m_dateupload = elem.attribute("dateupload");
-            
-            // list2.append(k1);
-            
-            QString mstr =  f1.m_id + f1.m_title + f1.m_id + f1.m_ownername; 
-            qDebug() << mstr;
-            
-            db->addPhoto(f1.m_id,f1.m_owner,f1.m_secret,f1.m_server,f1.m_farm,f1.m_title,f1.m_tags,f1.m_dateupload,f1.m_ownername); 
-        }
-    }
-}
 
 void Mauth::searchTags()
 {
@@ -584,7 +489,7 @@ void Mauth::searchTags()
         QDomDocument doc;
         doc.setContent(data);
         
-        db->removeAllTagirane();             // reset last query 
+        // db->removeAllTagirane();             // reset last query 
         qDebug() << " xml parser ... ";
         
         Favorites f1;
@@ -619,7 +524,7 @@ void Mauth::searchTags()
             
             // db->addTagirane(f1.m_id,f1.m_owner,f1.m_secret,f1.m_server,f1.m_farm,f1.m_title,f1.m_ownername); 
             
-            gore->down_start(m_url, m_name);        // wait to download ...
+            gore->down_start(m_url, "tagirane", m_name, 2);  // 2- tags
              
         
         }
@@ -632,15 +537,80 @@ void Mauth::searchTags()
     }
 }
 
+void Mauth::searchPools()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (reply->error() != QNetworkReply::NoError) 
+    {
+        qDebug() << "ERR: " << reply->errorString();
+        qDebug() << "Text: " << reply->readAll();
+    }
+    else
+    {
+        
+        QByteArray data = reply->readAll();
+        qDebug() << data;
+        
+        QDomNode node;
+        QDomElement elem, v;
+        QDomDocument doc;
+        doc.setContent(data);
+        
+        
+        qDebug() << " xml parser ... ";
+        
+        Favorites f1;
+        // QList<Favorites> list2;
+        QDomNodeList list1 = doc.elementsByTagName("photo");
+        
+        int m_limit = 100;   // TODO put this limit to Settings
+        
+        if (list1.count() < m_limit)
+        {
+            m_limit = list1.count();
+        }
+        
+        for(int i = 0 ; i <  m_limit; i++)
+        {
+            node = list1.item(i);
+            elem = node.toElement(); 
+            if (elem.hasAttribute("id")) f1.m_id = elem.attribute("id");
+            if (elem.hasAttribute("owner")) f1.m_owner = elem.attribute("owner");
+            if (elem.hasAttribute("ownername")) f1.m_ownername = elem.attribute("ownername");
+            if (elem.hasAttribute("secret")) f1.m_secret = elem.attribute("secret");
+            if (elem.hasAttribute("server")) f1.m_server = elem.attribute("server");
+            if (elem.hasAttribute("farm")) f1.m_farm = elem.attribute("farm");
+            if (elem.hasAttribute("title")) f1.m_title = elem.attribute("title");
+            
+            // list2.append(k1);
+            // https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}_[mstzb].jpg
+            
+            QString m_url =  "https://farm"+f1.m_farm+".staticflickr.com/"+f1.m_server+"/"+f1.m_id+"_"+f1.m_secret+"_z.jpg"; 
+            qDebug() << m_url;
+            
+            QString m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+            gore->down_start(m_url, "groups", m_name, 3);        // 3- groups
+             
+        
+        }
+        
+        
+        
+        qDebug() << " in-explore pool saved ";
+        
+         
+    }
+}
+/*
 void Mauth::print_osobne()
 {
     db->printPhotos();
 }
-
 void Mauth::print_tagirane()
 {
     db->printTagirane();
 }
+*/
 
 void Mauth::loadImage()
 {
