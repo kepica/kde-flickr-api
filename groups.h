@@ -1,19 +1,17 @@
-#ifndef PEOPLE_H
-#define PEOPLE_H
+#ifndef GROUPS_H
+#define GROUPS_H
  
 #include <QDialog>
 
 class QSettings;
-class QModelIndex;
-class QString;
 
-class People : public QDialog
+class Groups : public QDialog
 {
     Q_OBJECT
     
     public:
-        People(QWidget *parent=0, QSettings *mset=0);
-        virtual ~People() {};
+        Groups(QWidget *parent=0, QSettings *mset=0);
+        virtual ~Groups() {};
         
 
 public Q_SLOTS:
@@ -28,15 +26,14 @@ private Q_SLOTS:
         void set_img_b(int state);
         void slot_close();
         void get_photos();
-        // void on_Activated(const QModelIndex &index);
-        // void on_Edited(const QString &text);
         
         
     private:
     
-        QString select_id;
+    
 };
  
 #endif
+
 
 

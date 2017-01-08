@@ -1,3 +1,4 @@
+
 #include <QApplication>
 #include <QAction>
 #include <QSettings>
@@ -11,11 +12,11 @@
 #include <QButtonGroup>
 #include <QLineEdit>
 #include <QCalendarWidget>
-#include <QStandardItemModel>
 #include <QDate>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlRecord>
+#include <QCompleter>
 #include <QDebug>
 
 
@@ -23,47 +24,43 @@
 #include <KActionCollection>
 #include <KStandardAction>
 
-#include "linesearch.h"
+
 #include "mainwindow.h"
-#include "people.h"
+#include "tags.h"
 
-LineSearch *lin_id;
-QCalendarWidget *dat_1;
-QCalendarWidget *dat_2;
-QCheckBox *opt1;
-QCheckBox *opt2;
+QLineEdit *t_lin_id;
+QCalendarWidget *t_dat_1;
+QCalendarWidget *t_dat_2;
+QCheckBox *t_opt1;
+QCheckBox *t_opt2;
 
-QSettings *p_set;
-MainWindow *m_win;
+QSettings *t_set;
+MainWindow *t_win;
    
 
-People::People(QWidget *parent, QSettings *mset) : QDialog(parent)
+Tags::Tags(QWidget *parent, QSettings *mset) : QDialog(parent)
 {
-    m_win = (MainWindow*) parent;
-    p_set = mset;
+    t_win = (MainWindow*) parent;
+    t_set = mset;
     
-    QStringList group_list;
+    /*
+    QStringList id_list;
     
-    int i_ind = 0;
     QSqlQuery m_ery;
     m_ery.prepare("SELECT id,name FROM people WHERE 1");
     if ( m_ery.exec() )
     {
-        
         int i_id, i_name;
         i_id = m_ery.record().indexOf("id");
         i_name = m_ery.record().indexOf("name");
+        // qDebug() << "id " << i_id << " mame " << i_name;
     
         while (m_ery.next())
         {
-            
-            
             QString id = m_ery.value(i_id).toString();
             QString name = m_ery.value(i_name).toString();
-            QString pokaz = id + " " + name;
-            
-            group_list.append(pokaz);
-            i_ind++;
+            // qDebug() << id << name;
+            id_list.append(id+" "+name);
         }
     }
     else
@@ -71,27 +68,38 @@ People::People(QWidget *parent, QSettings *mset) : QDialog(parent)
         qDebug() << " db error " << m_ery.lastError();
     }
     
+    // qDebug() << id_list;
+    */
+    
+    
+    
     QGridLayout* topGrid = new QGridLayout;
     
     // ----------------------------------------------------- basic settings
     
-    QLabel *lab_id = new QLabel(i18n("Flickr user ID: "));
+    QLabel *lab_id = new QLabel(i18n("Flickr photo tags: "));
     
-    lin_id = new LineSearch(group_list);
+    QString mes3 = t_set->value("last_img_tag", "none").toString();
+    t_win->img_tag = mes3;
     
-    // QString mes3 = p_set->value("last_user_id", "none").toString();
-    // lin_id->setMaximumWidth(340);
-    // lin_id->setText(mes3) ;  
+    t_lin_id = new QLineEdit();
+    t_lin_id->setMaximumWidth(340);
+    t_lin_id->setText(mes3) ;
+    // t_lin_id->setInputMask("000000000A99");
     
-    // m_win->user_id = mes3;
+    
+    // QCompleter *completer = new QCompleter(id_list, this);
+    // completer->setCaseSensitivity(Qt::CaseInsensitive);
+    // t_lin_id->setCompleter(completer);
+
     QPushButton* btn1;
     btn1 = new QPushButton("Apply");
-    // btn1->setVisible(false);
-    connect(btn1, SIGNAL( clicked()), this, SLOT(set_id()));
+    connect(btn1, SIGNAL( clicked()), this, SLOT(set_tag()));
+    // connect(t_lin_id, SIGNAL(editingFinished()), this, SLOT(set_tag()));
     
     QHBoxLayout* h1Layout = new QHBoxLayout;
     h1Layout->addWidget(lab_id);
-    h1Layout->addWidget(lin_id);
+    h1Layout->addWidget(t_lin_id);
     h1Layout->addWidget(btn1);
     
     topGrid->addLayout(h1Layout,0,0);
@@ -108,11 +116,8 @@ People::People(QWidget *parent, QSettings *mset) : QDialog(parent)
     QLabel *lab_dte1 = new QLabel(i18n("From date: "));
     QLabel *lab_dte2 = new QLabel(i18n("To date: "));
     
-    // --- not saving date, but string (long) unix timestamp, this is usless
-    // mset.value("last_date_from", "none").value<QDate>()
-    
-    QString mes4 = p_set->value("last_date_to", "none").toString();
-    QString mes5 = p_set->value("last_date_from", "none").toString();
+    QString mes4 = t_set->value("last_date_to", "none").toString();
+    QString mes5 = t_set->value("last_date_from", "none").toString();
     
     qint64 unix_from = mes5.toLong();
     qint64 unix_to = mes4.toLong();
@@ -127,17 +132,17 @@ People::People(QWidget *parent, QSettings *mset) : QDialog(parent)
     
     // qDebug() << m_dat_from << m_dat_to;
     
-    dat_1 = new QCalendarWidget();
-    dat_1->setSelectedDate( m_dat_from );
-    dat_1->setFixedSize(250,280);
-    dat_1->setFirstDayOfWeek(Qt::Monday);
-    dat_2 = new QCalendarWidget();
-    dat_2->setSelectedDate( m_dat_to );
-    dat_2->setFixedSize(250,280);
-    dat_2->setFirstDayOfWeek(Qt::Monday);
+    t_dat_1 = new QCalendarWidget();
+    t_dat_1->setSelectedDate( m_dat_from );
+    t_dat_1->setFixedSize(250,280);
+    t_dat_1->setFirstDayOfWeek(Qt::Monday);
+    t_dat_2 = new QCalendarWidget();
+    t_dat_2->setSelectedDate( m_dat_to );
+    t_dat_2->setFixedSize(250,280);
+    t_dat_2->setFirstDayOfWeek(Qt::Monday);
     
-    connect( dat_1, SIGNAL (selectionChanged()) , this, SLOT( set_date_from()) );
-    connect( dat_2, SIGNAL (selectionChanged()) , this, SLOT( set_date_to()) );
+    connect( t_dat_1, SIGNAL (selectionChanged()) , this, SLOT( set_date_from()) );
+    connect( t_dat_2, SIGNAL (selectionChanged()) , this, SLOT( set_date_to()) );
     
     QHBoxLayout* h3Layout = new QHBoxLayout;
     h3Layout->addWidget(lab_dte1);
@@ -145,8 +150,8 @@ People::People(QWidget *parent, QSettings *mset) : QDialog(parent)
     
     
     QHBoxLayout* h4Layout = new QHBoxLayout;
-    h4Layout->addWidget(dat_1);
-    h4Layout->addWidget(dat_2);
+    h4Layout->addWidget(t_dat_1);
+    h4Layout->addWidget(t_dat_2);
     
     midGrid->addLayout(h3Layout,0,0);
     midGrid->addLayout(h4Layout,1,0);
@@ -160,35 +165,35 @@ People::People(QWidget *parent, QSettings *mset) : QDialog(parent)
     
     // QButtonGroup grp1;
     
-    QString suf = p_set->value("img_sufix").toString();  
-    m_win->img_sufix = suf;
+    QString suf = t_set->value("img_sufix").toString();  
+    t_win->img_sufix = suf;
 
-    opt1 = new QCheckBox(i18n("_z suffix, picture size  640 x Y"), this);
-    opt2 = new QCheckBox(i18n("_b suffix, picture size 1024 x Y"), this);
+    t_opt1 = new QCheckBox(i18n("_z suffix, picture size  640 x Y"), this);
+    t_opt2 = new QCheckBox(i18n("_b suffix, picture size 1024 x Y"), this);
     
     int flag = QString::compare(suf, "_z");
     // qDebug() << "sufix " << stat << "if " << flag;
     
     if (flag == 0)
     {
-        opt1->setCheckState(Qt::Checked);
-        opt2->setCheckState(Qt::Unchecked);
+        t_opt1->setCheckState(Qt::Checked);
+        t_opt2->setCheckState(Qt::Unchecked);
     }
     else
     {
-        opt1->setCheckState(Qt::Unchecked);
-        opt2->setCheckState(Qt::Checked);
+        t_opt1->setCheckState(Qt::Unchecked);
+        t_opt2->setCheckState(Qt::Checked);
     }   
     
-    connect( opt1, SIGNAL (stateChanged(int)) , this, SLOT( set_img_z(int)) );
-    connect( opt2, SIGNAL (stateChanged(int)) , this, SLOT( set_img_b(int)) );
+    connect( t_opt1, SIGNAL (stateChanged(int)) , this, SLOT( set_img_z(int)) );
+    connect( t_opt2, SIGNAL (stateChanged(int)) , this, SLOT( set_img_b(int)) );
     
     // grp1.addButton(opt1);
     // grp1.addButton(opt2);
 
     QVBoxLayout* v1Layout = new QVBoxLayout;
-    v1Layout->addWidget(opt1);
-    v1Layout->addWidget(opt2);
+    v1Layout->addWidget(t_opt1);
+    v1Layout->addWidget(t_opt2);
     
     QGroupBox *frame3 = new QGroupBox();
     frame3->setFixedSize(600,100);
@@ -226,108 +231,83 @@ People::People(QWidget *parent, QSettings *mset) : QDialog(parent)
     mainGrid->addWidget((QWidget*) frame4);
  
     setLayout(mainGrid);
-    setWindowTitle(QString("Search Photos by user_ID ")) ;
+    setWindowTitle(QString("Search Photos by Tags ")) ;
 }
 
-void People::slot_close()
+void Tags::slot_close()
 {
     this->close();
 }
 
-                                                   
-void People::set_id()
+                                                    
+void Tags::set_tag()
 {
-    QString str = lin_id->text(); 
-    QStringList list1 = str.split(" ");
-    select_id = list1[0];
-    
-    lin_id->disableSearch();
-    lin_id->setEnabled(false);
-    
-    m_win->user_id = select_id;
-    lin_id->setText(select_id);
-    p_set->setValue("last_user_id", select_id);
-    // qDebug() << select_id;
+    QString m_tag = t_lin_id->text();    
+    t_win->img_tag = m_tag;
+    t_set->setValue("last_img_tag", m_tag);
 }
 
-
-void People::set_date_from()
+void Tags::set_date_from()
 {
-    QDate date1 = dat_1->selectedDate();
+    QDate date1 = t_dat_1->selectedDate();
     QDateTime dt1 = QDateTime(date1);
     long timestamp1 = dt1.toTime_t();
     QString mstr1 = QString::number(timestamp1);
     
-    m_win->date_from = mstr1;
-    p_set->setValue("last_date_from", mstr1);
+    t_win->date_from = mstr1;
+    t_set->setValue("last_date_from", mstr1);
 }
 
-void People::set_date_to()
+void Tags::set_date_to()
 {
-    QDate date2 = dat_2->selectedDate();
+    QDate date2 = t_dat_2->selectedDate();
     QDateTime dt2 = QDateTime(date2);
     long timestamp2 = dt2.toTime_t();
     QString mstr2 = QString::number(timestamp2);
     
-    m_win->date_to = mstr2;
-    p_set->setValue("last_date_to", mstr2);
+    t_win->date_to = mstr2;
+    t_set->setValue("last_date_to", mstr2);
 }
 
-void People::set_img_z(int state)
+void Tags::set_img_z(int state)
 {
     // opt1 _z check / Unchecked
     QString m_su;
     if (state == 0)
     {
-        opt2->setCheckState(Qt::Checked);
+        t_opt2->setCheckState(Qt::Checked);
         m_su = "_b";
     }
     else if (state == 2)
     {
-        opt2->setCheckState(Qt::Unchecked);
+        t_opt2->setCheckState(Qt::Unchecked);
         m_su = "_z";
     }
-    m_win->img_sufix = m_su;
-    p_set->setValue("img_sufix", m_su);
+    t_win->img_sufix = m_su;
+    t_set->setValue("img_sufix", m_su);
 }
 
-void People::set_img_b(int state)
+void Tags::set_img_b(int state)
 {
     // opt2 _b check / Unchecked
     QString m_su;
     if (state == 0)
     {
-        opt1->setCheckState(Qt::Checked);
+        t_opt1->setCheckState(Qt::Checked);
         m_su = "_z";
     }
     else if (state == 2)
     {
-        opt1->setCheckState(Qt::Unchecked);
+        t_opt1->setCheckState(Qt::Unchecked);
         m_su = "_b";
     }
-    m_win->img_sufix = m_su;
-    p_set->setValue("img_sufix", m_su);
+    t_win->img_sufix = m_su;
+    t_set->setValue("img_sufix", m_su);
 }
 
-void People::get_photos()
+void Tags::get_photos()
 {
-    // qint64 unixtime_sada = QDateTime::currentMSecsSinceEpoch()/1000;
-    // qint64 unixtime_prije = unixtime_sada - 7 * 86400;
-    m_win->get_reply(1);  // 1- people
+    t_win->get_reply(2);  // 2- tags
 }
-/*
-void People::on_Activated(const QModelIndex &index)
-{
-    int row = index.row();
-    select_id = completer->completionModel()->index(row, 1).data().toString();
-    btn1->setVisible(true);
-    // qDebug() << select_id;
-}
-void People::on_Edited(const QString &text)
-{
-    if (text.isEmpty())
-    {
-        btn1->setVisible(false);
-    }
-}
-*/
+
+

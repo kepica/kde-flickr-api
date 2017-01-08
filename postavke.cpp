@@ -221,7 +221,7 @@ void Postavke::set_root()
                                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     
     line_root->setText(dir);
-    prvi->pic_dir = dir;
+    prvi->img_dir = dir;
     s_set->setValue("pic_root_dir", dir);
 }
                                                     

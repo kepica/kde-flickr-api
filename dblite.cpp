@@ -323,3 +323,98 @@ bool DBlite::userExists(const QString &id) const
     }
     return exists;
 }
+
+bool DBlite::addGroups(const QString &id, const QString &name, const QString &dir)
+{
+    bool success = false;
+    
+    if ( !groupExists(id) )
+    {
+        QSqlQuery m_ery;
+        m_ery.prepare("INSERT INTO groups (id,name,local_dir)"
+                        "VALUES (:id,:name,:dir)");
+    
+        m_ery.bindValue(":id",id);
+        m_ery.bindValue(":name",name);
+        m_ery.bindValue(":dir",dir);
+    
+        if (m_ery.exec())
+        {
+            success = true;
+        }
+        else
+        {
+            qDebug() << "insert error: " << m_ery.lastError();
+        }
+    }
+    else
+    {
+        qDebug() << "group exists ";
+    }
+    return success;
+}
+
+bool DBlite::groupExists(const QString &id) const
+{
+    bool exists = false;
+    
+    QSqlQuery m_ery;
+    m_ery.prepare("SELECT id FROM groups WHERE id = (:id)");
+    m_ery.bindValue(":id", id);
+    
+    if ( m_ery.exec())
+    {
+        if (m_ery.next())
+        {
+            exists = true;
+        }
+    }
+    else
+    {
+        qDebug() << " error " << m_ery.lastError();
+    }
+    return exists;
+}
+
+QString DBlite::groupDir(const QString &id) 
+{
+    QString ret;
+    QSqlQuery m_ery;
+    m_ery.prepare("SELECT local_dir FROM groups WHERE id = (:id)");
+    m_ery.bindValue(":id", id);
+    
+    if ( m_ery.exec())
+    {
+        while (m_ery.next()) 
+        {
+            ret = m_ery.value(0).toString();
+        }
+    }
+    else
+    {
+        qDebug() << " error " << m_ery.lastError();
+    }
+    return ret;
+}
+
+QString DBlite::groupName(const QString &id) 
+{
+    QString ret;
+    QSqlQuery m_ery;
+    m_ery.prepare("SELECT name FROM groups WHERE id = (:id)");
+    m_ery.bindValue(":id", id);
+    
+    if ( m_ery.exec())
+    {
+        while (m_ery.next()) 
+        {
+            ret = m_ery.value(0).toString();
+        }
+
+    }
+    else
+    {
+        qDebug() << " error " << m_ery.lastError();
+    }
+    return ret;
+}

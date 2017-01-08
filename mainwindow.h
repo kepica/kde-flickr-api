@@ -17,28 +17,22 @@ class MainWindow : public KXmlGuiWindow
         QString o1_secret;
     
         QString poruka;
-        QString tag;
+        QString img_tag;
         QString savePath;
-        QString pic_dir;
+        QString img_dir;
         QString user_id;
+        QString group_id;
+        QString group_name;
         QString date_from;
         QString date_to;
         QString img_sufix;
 
         void get_reply(int koji);
         
-        // ---------- db helper
-        
-        bool add_Photo(const QString &id, const QString &owner, const QString &secret, const QString &server,
-                      const QString &farm, const QString &title, const QString &tags, const QString &dateupload, 
-                      const QString &ownernme);
-       
-        
-        // ---------- db helper end
-        
+     
 
 public Q_SLOTS:
-        void down_start(QString url, QString id, QString name, int koji);
+        void down_start(QString url, QString dir, QString name, int koji);
     
 private Q_SLOTS:
     
@@ -53,14 +47,23 @@ private Q_SLOTS:
 
         void set_postavke();
         void search_people();
-        void parse_people();
+        void search_tags();
+        void search_pools();
+        void search_groups();
+        
+        void parse_photo();
+        
         void friend_list();
+        void groups_list();
         void parse_friend();
+        void parse_groups_id();
         
     private:
        
         KTextEdit *textArea;
         void setupActions();
+        
+        int photo_search;
     
 };
  

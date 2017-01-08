@@ -22,6 +22,7 @@ class DBlite : public QObject
                       const QString &farm, const QString &title, const QString &ownernme);
         
         bool addPeople(const QString &id, const QString &name, const QString &nick, const QString &server);
+        bool addGroups(const QString &id, const QString &name, const QString &dir);
         
         bool removePhoto(const QString &id);
         
@@ -30,6 +31,10 @@ class DBlite : public QObject
         
         bool photoExists(const QString &id) const;
         bool userExists(const QString &id) const;
+        bool groupExists(const QString &id) const;
+        
+        QString groupName(const QString &id);
+        QString groupDir(const QString &id);
         
         void printPhotos() const;
         void printTagirane() const;

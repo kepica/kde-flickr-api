@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gui name="oblaci"
-     version="27"
+     version="29"
      xmlns="http://www.kde.org/standards/kxmlgui/1.0"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0
@@ -19,7 +19,6 @@
       <Action name="pokaz" />
       <Action name="balon" />
       <Action name="comments" />
-      <Action name="groups" />
     </Menu >
      <Menu name="flickr" >
       <text>F&amp;lickr</text>
@@ -29,13 +28,15 @@
       <Action name="statsum" />
       <Action name="frend" />
       <Action name="favorites" />
+      <Action name="groups" />
       <Action name="link" />
     </Menu >
     <Menu name="search" >
-      <text>S&amp;earch</text>
+      <text>Search Photos </text>
       <Action name="osobne" />
       <Action name="tags" />
       <Action name="pools" />
+      <Action name="grupe" />
     </Menu >
   </MenuBar>
  

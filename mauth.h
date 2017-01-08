@@ -21,9 +21,6 @@ class Mauth : public QObject
         void photo_comments();
         void get_favorites();
         
-        void get_groups();
-        void search_tags();
-        void search_pools();
         // void print_osobne();
         // void print_tagirane();
         void stats_photo();
@@ -38,9 +35,7 @@ class Mauth : public QObject
         void flikResponse();
         void flikComments();
         void flikFavorites();
-
-        void searchTags();
-        void searchPools();
+        
         void respStatSuma();
         void respStatPhoto();
         void loadImage();

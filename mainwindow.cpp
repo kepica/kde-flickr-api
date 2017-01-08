@@ -22,8 +22,9 @@
 #include "o0globals.h"
 #include "o1requestor.h"
 
-#include "mauth.h"
+#include "groups.h"
 #include "favorites.h"
+#include "tags.h"
 #include "people.h"
 #include "notice.h"
 #include "notica.h"
@@ -36,7 +37,7 @@
 O1 *o1;
 Notice *obav;
 Notica *oblak;
-// Mauth *flkr;
+
 QNetworkAccessManager *manager;
 O1Requestor *requestor;   
 
@@ -48,7 +49,6 @@ QSettings *mset;
 const char O1_KEY[] = "put-your-key";
 const char O1_SECRET[] = "put-your-secret";
 const char USER_ID[] = "put-your-id";  
-
 
 
 
@@ -104,28 +104,16 @@ MainWindow::MainWindow(QWidget *parent) : KXmlGuiWindow(parent)
     
     if (mset->value("pic_root_dir", "none") == "none")
     {
-        pic_dir = "none";    // cant save
+        img_dir = "none";    // cant save
         qDebug() << "cant save, choose pic home dir !";
     }
     else
     {
-        pic_dir = mset->value("pic_root_dir").toString();
-        textArea->append(QString("*** Pic_dir: ")+pic_dir);
-    }
-    
-    date_from = QString("1477550147");
-    date_to = QString("1480142147");
-    
-    tag = QString("in-explore");
-    savePath = QString("/home/vjeko/slike/")+tag;
-    QDir dir(savePath);
-    if ( !dir.exists() )
-    {
-        dir.mkpath(".");
+        img_dir = mset->value("pic_root_dir").toString();
+        textArea->append(QString("*** Pic_dir: ")+img_dir);
     }
     
     m_photo =  new PhotoDown(this);       // downloadad + save
-    
     connect( m_photo, SIGNAL( done() ), this, SLOT(down_done() ) );
     // connect( m_photo, SIGNAL( downloaded(QString) ), this, SLOT(down_down(QString) ) );
     connect( m_photo, SIGNAL( transfer(QString) ), this, SLOT(down_transfer(QString) ) );
@@ -217,6 +205,12 @@ void MainWindow::setupActions()
     actionCollection()->addAction("frend", frendAction);
     connect(frendAction, SIGNAL(triggered(bool)), this, SLOT( friend_list() ) );
     
+    QAction* groupsAction = new QAction(this);
+    groupsAction->setText(i18n("&Get groups ID"));
+    actionCollection()->setDefaultShortcut(groupsAction, Qt::CTRL + Qt::Key_G);
+    actionCollection()->addAction("groups", groupsAction);
+    connect(groupsAction, SIGNAL(triggered(bool)), this, SLOT( groups_list() ) );
+    
     /*
     QAction* echotestAction = new QAction(this);
     echotestAction->setText(i18n("&Echo-test"));
@@ -279,47 +273,35 @@ void MainWindow::setupActions()
     connect(favoritesAction, SIGNAL(triggered(bool)), flkr, SLOT( get_favorites() ) );
     */
     QAction* osobneAction = new QAction(this);
-    osobneAction->setText(i18n("&Search by author"));
-    actionCollection()->setDefaultShortcut(osobneAction, Qt::CTRL + Qt::Key_C);
+    osobneAction->setText(i18n("Search by user"));
+    actionCollection()->setDefaultShortcut(osobneAction, Qt::CTRL + Qt::Key_U);
     actionCollection()->addAction("osobne", osobneAction);
     connect(osobneAction, SIGNAL(triggered(bool)), this, SLOT( search_people() ) );
     
-   /*
     QAction* tagsAction = new QAction(this);
-    tagsAction->setText(i18n("&Search by tag"));
+    tagsAction->setText(i18n("Search by tag"));
     actionCollection()->setDefaultShortcut(tagsAction, Qt::CTRL + Qt::Key_T);
     actionCollection()->addAction("tags", tagsAction);
-    connect(tagsAction, SIGNAL(triggered(bool)), flkr, SLOT( search_tags() ) );
+    connect(tagsAction, SIGNAL(triggered(bool)), this, SLOT( search_tags() ) );
    
-    QAction* groupsAction = new QAction(this);
-    groupsAction->setText(i18n("&Get groups ID"));
-    actionCollection()->setDefaultShortcut(groupsAction, Qt::CTRL + Qt::Key_G);
-    actionCollection()->addAction("groups", groupsAction);
-    connect(groupsAction, SIGNAL(triggered(bool)), flkr, SLOT( get_groups() ) );
-    
     QAction* poolsAction = new QAction(this);
-    poolsAction->setText(i18n("&Search group pool"));
+    poolsAction->setText(i18n("Search group pool"));
     actionCollection()->setDefaultShortcut(poolsAction, Qt::CTRL + Qt::Key_P);
     actionCollection()->addAction("pools", poolsAction);
-    connect(poolsAction, SIGNAL(triggered(bool)), flkr, SLOT( search_pools() ) );
-   */
+    connect(poolsAction, SIGNAL(triggered(bool)), this, SLOT( search_pools() ) );
+    
+    QAction* grupeAction = new QAction(this);
+    grupeAction->setText(i18n("Search in groups"));
+    actionCollection()->setDefaultShortcut(grupeAction, Qt::CTRL + Qt::Key_G);
+    actionCollection()->addAction("grupe", grupeAction);
+    connect(grupeAction, SIGNAL(triggered(bool)), this, SLOT( search_groups() ) );
+    
+   
     
     KStandardAction::quit(qApp, SLOT(quit()), actionCollection());
 
     setupGUI(Default, "oblaciui.rc");
 }
-
-// ------------------------------------------ db helper
-
-bool MainWindow::add_Photo(const QString &id, const QString &owner, const QString &secret, const QString &server,
-                      const QString &farm, const QString &title, const QString &tags, const QString &dateupload, 
-                      const QString &ownername)
-{
-   return db->addPhoto(id,owner,secret,server,farm,title,tags,dateupload,ownername); 
-}
-
-
-// ------------------------------------------- db helper end
 
 void MainWindow::down_done()
 {
@@ -343,7 +325,33 @@ void MainWindow::search_people()
     m_people->show();
 }
 
+void MainWindow::search_tags()
+{
+    Tags *m_tags = new Tags(this, mset);
+    m_tags->show();
+}
 
+void MainWindow::search_pools()
+{
+    Tags *m_tags = new Tags(this, mset);
+    m_tags->show();
+}
+
+void MainWindow::search_groups()
+{
+    Groups *m_grp = new Groups(this, mset);
+    m_grp->show();
+}
+
+void MainWindow::friend_list()
+{
+    get_reply(71);
+}
+
+void MainWindow::groups_list()
+{
+    get_reply(72);
+}
 
 /*
 void MainWindow::down_down(QString name)
@@ -358,7 +366,7 @@ void MainWindow::down_transfer(QString str)
     textArea->append(str);
 }
 
-void MainWindow::down_start(QString url, QString id, QString name, int koji)
+void MainWindow::down_start(QString url, QString dir, QString name, int koji)
 {
 
     QString m_path = mset->value("pic_root_dir").toString();
@@ -366,25 +374,24 @@ void MainWindow::down_start(QString url, QString id, QString name, int koji)
     switch (koji)
     {
         case 1:
-            m_path = m_path + "/people/" + id;
+            m_path = m_path + "/people/" + dir;
             break;
         case 2:
-            m_path = m_path + "/tags/" + id;
+            m_path = m_path + "/tags/" + dir;
             break;
         case 3:
-            m_path = m_path + "/groups/" + id;
+            m_path = m_path + "/groups/" + dir;
             break;
     }
     
-    QDir dir(m_path);
-    if ( !dir.exists() )
+    QDir m_dir(m_path);
+    if ( !m_dir.exists() )
     {
-        dir.mkpath(".");
+        m_dir.mkpath(".");
     };
             
     
     WaitSignal pause((QObject*) m_photo, SIGNAL( done()) );
-    
     m_photo->setFile(url, name, m_path);
     
     if ( pause.wait(60100) )
@@ -397,25 +404,23 @@ void MainWindow::down_start(QString url, QString id, QString name, int koji)
     }
 }
 
-void MainWindow::friend_list()
-{
-    get_reply(71);
-}
 
 void MainWindow::get_reply(int koji)
 {
     QUrl url1 = QUrl("https://www.flickr.com/services/rest/");
     QNetworkRequest request(url1);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
+    
     QList<O0RequestParameter> reqParams = QList<O0RequestParameter>();
-    QByteArray paramN1;
-    QByteArray paramN2;
+    QByteArray paramN1 = "method";
+    QByteArray paramN2 = "api-key";
     QByteArray paramN3;
     QByteArray paramN4;
     QByteArray paramN5;
     QByteArray paramN6;
     QByteArray paramN7;
     QString mes1;
-    QString mes2;
+    QString mes2 = o1_key;
     QString mes3;
     QString mes4;
     QString mes5;
@@ -428,11 +433,8 @@ void MainWindow::get_reply(int koji)
     {
         case 1:
              
-            paramN1 = "method";
             mes1 = QString("flickr.people.getPhotos");
             reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
-            paramN2 = "api-key";
-            mes2 = o1_key;
             reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
             paramN3 = "user_id";
             mes3 = user_id;
@@ -447,16 +449,91 @@ void MainWindow::get_reply(int koji)
             mes6 = QString("tags, date_upload, owner_name");
             reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
             
+            photo_search = 1;
             postData = O1::createQueryParameters(reqParams);
-            request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
             reply = requestor->post(request, reqParams, postData);
-            connect(reply, SIGNAL(finished()), this, SLOT( parse_people() ) );
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
             qDebug() <<  " user " << mes3 << " from " << mes5 << " to " << mes4;
+            break;
+            
+        case 2:
+            
+            mes1 = QString("flickr.photos.search");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            paramN3 = "tags";
+            mes3 = img_tag;
+            reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
+            paramN4 = "max_upload_date";
+            mes4 = date_to;
+            reqParams << O0RequestParameter(paramN4, mes4.toLatin1());
+            paramN5 = "min_upload_date";
+            mes5 = date_from;
+            reqParams << O0RequestParameter(paramN5, mes5.toLatin1());
+            paramN6 = "extras";
+            mes6 = QString("owner_name, date_upload, tags");
+            reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
+            paramN7 = "privacy_filter";
+            mes7 = QString("1");    // 1- public only TODO in settings
+            reqParams << O0RequestParameter(paramN7, mes7.toLatin1());            
+            
+            photo_search = 2;
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
+            qDebug() <<  "public " << img_tag << " from " << mes5 << " to " << mes4;
+            break;
+            
+        case 3:
+            
+            mes1 = QString("flickr.groups.pools.getPhotos");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            paramN3 = "group_id";
+            mes3 = group_id;
+            reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
+            paramN4 = "extras";
+            mes4 = QString("owner_name, date_upload, tags");
+            reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
+            
+            photo_search = 3;
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
+            qDebug() << " pool photos " << group_id;
+            break;
+            
+        case 4:
+            
+            mes1 = QString("flickr.photos.search");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            paramN3 = "group_id";
+            mes3 = group_id;
+            reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
+            paramN4 = "max_upload_date";
+            mes4 = date_to;
+            reqParams << O0RequestParameter(paramN4, mes4.toLatin1());
+            paramN5 = "min_upload_date";
+            mes5 = date_from;
+            reqParams << O0RequestParameter(paramN5, mes5.toLatin1());
+            paramN6 = "extras";
+            mes6 = QString("owner_name, date_upload, tags");
+            reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
+            paramN7 = "privacy_filter";
+            mes7 = QString("1");    // 1- public only TODO in settings
+            reqParams << O0RequestParameter(paramN7, mes7.toLatin1());            
+            
+            photo_search = 3;  // same as group pool
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
+            qDebug() <<  "group " << group_id << " from " << mes5 << " to " << mes4;
             break;
             
         case 71:
                          
-            paramN1 = "method";
+            // --------------------------------------- insert contacts to People table
             mes1 = QString("flickr.contacts.getList");
             reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
             paramN2 = "api-key";
@@ -464,16 +541,28 @@ void MainWindow::get_reply(int koji)
             reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
             
             postData = O1::createQueryParameters(reqParams);
-            request.setHeader(QNetworkRequest::ContentTypeHeader, O2_MIME_TYPE_XFORM);
             reply = requestor->post(request, reqParams, postData);
             connect(reply, SIGNAL(finished()), this, SLOT( parse_friend() ) );
             qDebug() <<  " friends ";
+            break;
+            
+        case 72:
+            
+            // ---------------------------------- insert group-ID into Group table
+            mes1 = QString("flickr.groups.pools.getGroups");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_groups_id() ) );
+            qDebug() <<  "get groups ID ";
             break;
 
     }
 }
 
-void MainWindow::parse_people()
+void MainWindow::parse_photo()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
     if (reply->error() != QNetworkReply::NoError) 
@@ -492,12 +581,19 @@ void MainWindow::parse_people()
         QDomDocument doc;
         doc.setContent(data);
         
-        qDebug() << " xml parser people ... ";
+        qDebug() << " xml parser photo ... ";
         
         Favorites f1;
-        // QList<Favorites> list2;
         QDomNodeList list1 = doc.elementsByTagName("photo");
-        for(int i = 0 ; i < list1.count() ; i++)
+
+        int m_limit = 30;   // TODO put this limit to Settings
+        
+        if (list1.count() < m_limit)
+        {
+            m_limit = list1.count();
+        }
+        
+        for(int i = 0 ; i <  m_limit; i++)
         {
             node = list1.item(i);
             elem = node.toElement(); 
@@ -510,21 +606,30 @@ void MainWindow::parse_people()
             if (elem.hasAttribute("title")) f1.m_title = elem.attribute("title");
             if (elem.hasAttribute("tags")) f1.m_tags = elem.attribute("tags");
             if (elem.hasAttribute("dateupload")) f1.m_dateupload = elem.attribute("dateupload");
-            
-            // list2.append(k1);
-            
-            QString mstr =  f1.m_id + f1.m_title + f1.m_id + f1.m_ownername; 
-            // qDebug() << mstr;
-            
-            if (add_Photo(f1.m_id,f1.m_owner,f1.m_secret,f1.m_server,f1.m_farm,
+
+            QString m_name;
+            if (db->addPhoto(f1.m_id,f1.m_owner,f1.m_secret,f1.m_server,f1.m_farm,
                 f1.m_title,f1.m_tags,f1.m_dateupload,f1.m_ownername)) 
             {
                 QString m_url =  "https://farm"+f1.m_farm+".staticflickr.com/"+f1.m_server+"/"+f1.m_id+"_"+f1.m_secret+img_sufix+".jpg"; 
-                QString m_name = f1.m_id+".jpg";
-                down_start(m_url, f1.m_owner, m_name, 1);  // 1- people
-            }
-        }
-    }
+                switch (photo_search)
+                {
+                    case 1:
+                        m_name = f1.m_id+".jpg";
+                        down_start(m_url, f1.m_owner, m_name, 1);  
+                        break;
+                    case 2:
+                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                        down_start(m_url, img_tag, m_name, 2);
+                        break;
+                    case 3:
+                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                        down_start(m_url, group_id, m_name, 3);
+                        break;
+                } // sw
+            } // add
+        } // for
+    } // reply
 }
 
 void MainWindow::parse_friend()
@@ -565,6 +670,46 @@ void MainWindow::parse_friend()
             QString mstr =  m_id + m_name + m_nick + m_server; 
             qDebug() << mstr;
             db->addPeople(m_id, m_name, m_nick, m_server);
+        }
+    }
+}
+
+void MainWindow::parse_groups_id()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (reply->error() != QNetworkReply::NoError) 
+    {
+        qDebug() << "ERR: " << reply->errorString();
+        qDebug() << "Text: " << reply->readAll();
+    }
+    else
+    {
+        
+        QByteArray data = reply->readAll();
+        qDebug() << data;
+        
+        QDomNode node;
+        QDomElement elem, v;
+        QDomDocument doc;
+        doc.setContent(data);
+        
+        qDebug() << " xml parser groups ... ";
+            
+        QString m_id;
+        QString m_name;
+    
+        QDomNodeList list1 = doc.elementsByTagName("group");
+        for(int i = 0 ; i < list1.count() ; i++)
+        {
+            node = list1.item(i);
+            elem = node.toElement(); 
+            if (elem.hasAttribute("id")) m_id = elem.attribute("id");
+            if (elem.hasAttribute("name")) m_name = elem.attribute("name");
+           
+            
+            QString mstr =  m_id + m_name; 
+            qDebug() << mstr;
+            db->addGroups(m_id, m_name, m_name);
         }
     }
 }
