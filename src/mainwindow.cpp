@@ -45,14 +45,10 @@ PhotoDown *m_photo;
 DBlite *db;
 QSettings *mset;
 
-/*
 const char O1_KEY[] = "put-your-key";
 const char O1_SECRET[] = "put-your-secret";
 const char USER_ID[] = "put-your-id";  
-*/
 
-const char O1_KEY[] = "b597a7c2b618ab3e24ab33d4b00574dd";
-const char O1_SECRET[] = "825c6c6fb429d7b1";
 
 
 MainWindow::MainWindow(QWidget *parent) : KXmlGuiWindow(parent)
