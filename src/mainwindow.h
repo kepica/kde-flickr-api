@@ -44,6 +44,12 @@ private Q_SLOTS:
         
         void down_done();
         void down_transfer(QString str);
+        
+        void test_echo();
+        void panda_ling();
+        void panda_hsing();
+        void panda_wang();
+        void get_interest();
 
         void set_postavke();
         void search_people();
@@ -57,6 +63,7 @@ private Q_SLOTS:
         void groups_list();
         void parse_friend();
         void parse_groups_id();
+        void parse_echo();
         
     private:
        

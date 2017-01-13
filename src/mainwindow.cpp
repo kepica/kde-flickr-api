@@ -45,11 +45,14 @@ PhotoDown *m_photo;
 DBlite *db;
 QSettings *mset;
 
-
+/*
 const char O1_KEY[] = "put-your-key";
 const char O1_SECRET[] = "put-your-secret";
 const char USER_ID[] = "put-your-id";  
+*/
 
+const char O1_KEY[] = "b597a7c2b618ab3e24ab33d4b00574dd";
+const char O1_SECRET[] = "825c6c6fb429d7b1";
 
 
 MainWindow::MainWindow(QWidget *parent) : KXmlGuiWindow(parent)
@@ -212,14 +215,38 @@ void MainWindow::setupActions()
     actionCollection()->addAction("groups", groupsAction);
     connect(groupsAction, SIGNAL(triggered(bool)), this, SLOT( groups_list() ) );
     
-    /*
+    QAction* lingAction = new QAction(this);
+    lingAction->setText(i18n("&Ling panda photos"));
+    actionCollection()->setDefaultShortcut(lingAction, Qt::CTRL + Qt::Key_L);
+    actionCollection()->addAction("ling", lingAction);
+    connect(lingAction, SIGNAL(triggered(bool)), this, SLOT( panda_ling() ) );
+    
+    QAction* hsingAction = new QAction(this);
+    hsingAction->setText(i18n("&Hsing panda photos"));
+    actionCollection()->setDefaultShortcut(hsingAction, Qt::CTRL + Qt::Key_H);
+    actionCollection()->addAction("hsing", hsingAction);
+    connect(hsingAction, SIGNAL(triggered(bool)), this, SLOT( panda_hsing() ) );
+    
+    QAction* wangAction = new QAction(this);
+    wangAction->setText(i18n("&Wang panda photos"));
+    actionCollection()->setDefaultShortcut(wangAction, Qt::CTRL + Qt::Key_W);
+    actionCollection()->addAction("wang", wangAction);
+    connect(wangAction, SIGNAL(triggered(bool)), this, SLOT( panda_wang() ) );
+    
+    QAction* interestAction = new QAction(this);
+    interestAction->setText(i18n("&Interesting tphotos"));
+    actionCollection()->setDefaultShortcut(interestAction, Qt::CTRL + Qt::Key_W);
+    actionCollection()->addAction("interest", interestAction);
+    connect(interestAction, SIGNAL(triggered(bool)), this, SLOT( get_interest() ) );
+    
     QAction* echotestAction = new QAction(this);
     echotestAction->setText(i18n("&Echo-test"));
     // echotestAction->setIcon(QIcon::fromTheme("journal-new"));
     actionCollection()->setDefaultShortcut(echotestAction, Qt::CTRL + Qt::Key_E);
     actionCollection()->addAction("echotest", echotestAction);
-    connect(echotestAction, SIGNAL(triggered(bool)), flkr, SLOT( test_echo() ) );
-   
+    connect(echotestAction, SIGNAL(triggered(bool)), this, SLOT( test_echo() ) );
+    
+   /*
     QAction* logintestAction = new QAction(this);
     logintestAction->setText(i18n("&Login-test"));
     // echotestAction->setIcon(QIcon::fromTheme("journal-new"));
@@ -344,6 +371,31 @@ void MainWindow::search_groups()
     m_grp->show();
 }
 
+void MainWindow::panda_ling()
+{
+    get_reply(5);
+}
+
+void MainWindow::panda_hsing()
+{
+    get_reply(6);
+}
+
+void MainWindow::panda_wang()
+{
+    get_reply(7);
+}
+
+void MainWindow::get_interest()
+{
+    get_reply(8);
+}
+
+void MainWindow::test_echo()
+{
+    get_reply(61);
+}
+
 void MainWindow::friend_list()
 {
     get_reply(71);
@@ -382,6 +434,9 @@ void MainWindow::down_start(QString url, QString dir, QString name, int koji)
             break;
         case 3:
             m_path = m_path + "/groups/" + dir;
+            break;
+        case 4:
+            m_path = m_path + dir;   // panda
             break;
     }
     
@@ -531,7 +586,95 @@ void MainWindow::get_reply(int koji)
             connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
             qDebug() <<  "group " << group_id << " from " << mes5 << " to " << mes4;
             break;
+        
+        case 5:
             
+            mes1 = QString("flickr.panda.getPhotos");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            paramN3 = "panda_name";
+            mes3 = "ling ling";
+            reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
+            paramN4 = "extras";
+            mes4 = QString("owner_name, date_upload, tags");
+            reqParams << O0RequestParameter(paramN4, mes4.toLatin1());            
+            
+            photo_search = 4;  // ling panda
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
+            qDebug() <<  "panda ling " ;
+            break;
+        
+        case 6:
+            
+            mes1 = QString("flickr.panda.getPhotos");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            paramN3 = "panda_name";
+            mes3 = "hsing hsing";
+            reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
+            paramN4 = "extras";
+            mes4 = QString("owner_name, date_upload, tags");
+            reqParams << O0RequestParameter(paramN4, mes4.toLatin1());            
+            
+            photo_search = 5;  // hsing panda
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
+            qDebug() <<  "panda hsing " ;
+            break;
+        
+        case 7:
+            
+            mes1 = QString("flickr.panda.getPhotos");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            paramN3 = "panda_name";
+            mes3 = "wang wang";
+            reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
+            paramN4 = "extras";
+            mes4 = QString("owner_name, date_upload, tags");
+            reqParams << O0RequestParameter(paramN4, mes4.toLatin1());            
+            
+            photo_search = 6;  // wang panda
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
+            qDebug() <<  "panda wang " ;
+            break;
+        
+        case 8:
+            
+            mes1 = QString("flickr.interestingness.getList");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            paramN3 = "extras";
+            mes3 = QString("owner_name, date_upload, tags");
+            reqParams << O0RequestParameter(paramN3, mes3.toLatin1());            
+            
+            photo_search = 7;  // interesting
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_photo() ) );
+            qDebug() <<  "panda wang " ;
+            break;
+        
+        case 61:
+                         
+            // --------------------------------------- test echo
+            mes1 = QString("flickr.test.echo");
+            reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
+            paramN2 = "api-key";
+            mes2 = o1_key;
+            reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
+            
+            postData = O1::createQueryParameters(reqParams);
+            reply = requestor->post(request, reqParams, postData);
+            connect(reply, SIGNAL(finished()), this, SLOT( parse_echo() ) );
+            qDebug() <<  " friends ";
+            break;
+        
         case 71:
                          
             // --------------------------------------- insert contacts to People table
@@ -627,6 +770,22 @@ void MainWindow::parse_photo()
                         m_name = f1.m_owner+"-"+f1.m_id+".jpg";
                         down_start(m_url, group_id, m_name, 3);
                         break;
+                    case 4:
+                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                        down_start(m_url, "ling", m_name, 4);
+                        break;
+                    case 5:
+                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                        down_start(m_url, "hsing", m_name, 4);
+                        break;
+                    case 6:
+                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                        down_start(m_url, "wang", m_name, 4);
+                        break;
+                    case 7:
+                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                        down_start(m_url, "wang", m_name, 4);
+                        break;
                 } // sw
             } // add
         } // for
@@ -712,5 +871,28 @@ void MainWindow::parse_groups_id()
             qDebug() << mstr;
             db->addGroups(m_id, m_name, m_name);
         }
+    }
+}
+
+void MainWindow::parse_echo()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (reply->error() != QNetworkReply::NoError) 
+    {
+        qDebug() << "ERR: " << reply->errorString();
+        qDebug() << "Text: " << reply->readAll();
+    }
+    else
+    {
+        
+        QByteArray data = reply->readAll();
+        qDebug() << data;
+        
+        QDomNode node;
+        QDomElement elem, v;
+        QDomDocument doc;
+        doc.setContent(data);
+        
+        qDebug() << " xml parser echo ... ";
     }
 }

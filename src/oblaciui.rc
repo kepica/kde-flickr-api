@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gui name="oblaci"
-     version="29"
+     version="31"
      xmlns="http://www.kde.org/standards/kxmlgui/1.0"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0
@@ -29,6 +29,10 @@
       <Action name="frend" />
       <Action name="favorites" />
       <Action name="groups" />
+      <Action name="ling" />
+      <Action name="hsing" />
+      <Action name="wang" />
+      <Action name="interest" />
       <Action name="link" />
     </Menu >
     <Menu name="search" >
