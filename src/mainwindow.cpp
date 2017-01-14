@@ -45,10 +45,9 @@ PhotoDown *m_photo;
 DBlite *db;
 QSettings *mset;
 
+
 const char O1_KEY[] = "put-your-key";
 const char O1_SECRET[] = "put-your-secret";
-const char USER_ID[] = "put-your-id";  
-
 
 
 MainWindow::MainWindow(QWidget *parent) : KXmlGuiWindow(parent)
@@ -498,7 +497,7 @@ void MainWindow::get_reply(int koji)
             mes5 = date_from;
             reqParams << O0RequestParameter(paramN5, mes5.toLatin1());
             paramN6 = "extras";
-            mes6 = QString("tags, date_upload, owner_name");
+            mes6 = QString("license, tags, date_upload, owner_name");
             reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
             
             photo_search = 1;
@@ -523,7 +522,7 @@ void MainWindow::get_reply(int koji)
             mes5 = date_from;
             reqParams << O0RequestParameter(paramN5, mes5.toLatin1());
             paramN6 = "extras";
-            mes6 = QString("owner_name, date_upload, tags");
+            mes6 = QString("license, owner_name, date_upload, tags");
             reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
             paramN7 = "privacy_filter";
             mes7 = QString("1");    // 1- public only TODO in settings
@@ -545,7 +544,7 @@ void MainWindow::get_reply(int koji)
             mes3 = group_id;
             reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
             paramN4 = "extras";
-            mes4 = QString("owner_name, date_upload, tags");
+            mes4 = QString("license, owner_name, date_upload, tags");
             reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
             
             photo_search = 3;
@@ -570,7 +569,7 @@ void MainWindow::get_reply(int koji)
             mes5 = date_from;
             reqParams << O0RequestParameter(paramN5, mes5.toLatin1());
             paramN6 = "extras";
-            mes6 = QString("owner_name, date_upload, tags");
+            mes6 = QString("license, owner_name, date_upload, tags");
             reqParams << O0RequestParameter(paramN6, mes6.toLatin1());            
             paramN7 = "privacy_filter";
             mes7 = QString("1");    // 1- public only TODO in settings
@@ -592,7 +591,7 @@ void MainWindow::get_reply(int koji)
             mes3 = "ling ling";
             reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
             paramN4 = "extras";
-            mes4 = QString("owner_name, date_upload, tags");
+            mes4 = QString("license, owner_name, date_upload, tags");
             reqParams << O0RequestParameter(paramN4, mes4.toLatin1());            
             
             photo_search = 4;  // ling panda
@@ -611,7 +610,7 @@ void MainWindow::get_reply(int koji)
             mes3 = "hsing hsing";
             reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
             paramN4 = "extras";
-            mes4 = QString("owner_name, date_upload, tags");
+            mes4 = QString("license, owner_name, date_upload, tags");
             reqParams << O0RequestParameter(paramN4, mes4.toLatin1());            
             
             photo_search = 5;  // hsing panda
@@ -630,7 +629,7 @@ void MainWindow::get_reply(int koji)
             mes3 = "wang wang";
             reqParams << O0RequestParameter(paramN3, mes3.toLatin1());
             paramN4 = "extras";
-            mes4 = QString("owner_name, date_upload, tags");
+            mes4 = QString("license, owner_name, date_upload, tags");
             reqParams << O0RequestParameter(paramN4, mes4.toLatin1());            
             
             photo_search = 6;  // wang panda
@@ -646,7 +645,7 @@ void MainWindow::get_reply(int koji)
             reqParams << O0RequestParameter(paramN1, mes1.toLatin1());
             reqParams << O0RequestParameter(paramN2, mes2.toLatin1());
             paramN3 = "extras";
-            mes3 = QString("owner_name, date_upload, tags");
+            mes3 = QString("license, owner_name, date_upload, tags");
             reqParams << O0RequestParameter(paramN3, mes3.toLatin1());            
             
             photo_search = 7;  // interesting
@@ -724,6 +723,7 @@ void MainWindow::parse_photo()
         qDebug() << " xml parser photo ... ";
         
         Favorites f1;
+        QString m_lic;
         QDomNodeList list1 = doc.elementsByTagName("photo");
 
         int m_limit = 30;   // TODO put this limit to Settings
@@ -737,6 +737,7 @@ void MainWindow::parse_photo()
         {
             node = list1.item(i);
             elem = node.toElement(); 
+            m_lic = "0";
             if (elem.hasAttribute("id")) f1.m_id = elem.attribute("id");
             if (elem.hasAttribute("owner")) f1.m_owner = elem.attribute("owner");
             if (elem.hasAttribute("ownername")) f1.m_ownername = elem.attribute("ownername");
@@ -746,44 +747,52 @@ void MainWindow::parse_photo()
             if (elem.hasAttribute("title")) f1.m_title = elem.attribute("title");
             if (elem.hasAttribute("tags")) f1.m_tags = elem.attribute("tags");
             if (elem.hasAttribute("dateupload")) f1.m_dateupload = elem.attribute("dateupload");
-
-            QString m_name;
-            if (db->addPhoto(f1.m_id,f1.m_owner,f1.m_secret,f1.m_server,f1.m_farm,
-                f1.m_title,f1.m_tags,f1.m_dateupload,f1.m_ownername)) 
+            if (elem.hasAttribute("license")) m_lic = elem.attribute("license");
+            
+            if (m_lic == "0")
             {
-                QString m_url =  "https://farm"+f1.m_farm+".staticflickr.com/"+f1.m_server+"/"+f1.m_id+"_"+f1.m_secret+img_sufix+".jpg"; 
-                switch (photo_search)
+                qDebug() << " photo is license protected " << f1.m_id << " " << f1.m_ownername << " " << f1.m_title;
+            }
+            else
+            {
+                QString m_name;
+                if (db->addPhoto(f1.m_id,f1.m_owner,f1.m_secret,f1.m_server,f1.m_farm,
+                    f1.m_title,f1.m_tags,f1.m_dateupload,f1.m_ownername)) 
                 {
-                    case 1:
-                        m_name = f1.m_id+".jpg";
-                        down_start(m_url, f1.m_owner, m_name, 1);  
-                        break;
-                    case 2:
-                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
-                        down_start(m_url, img_tag, m_name, 2);
-                        break;
-                    case 3:
-                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
-                        down_start(m_url, group_id, m_name, 3);
-                        break;
-                    case 4:
-                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
-                        down_start(m_url, "ling", m_name, 4);
-                        break;
-                    case 5:
-                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
-                        down_start(m_url, "hsing", m_name, 4);
-                        break;
-                    case 6:
-                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
-                        down_start(m_url, "wang", m_name, 4);
-                        break;
-                    case 7:
-                        m_name = f1.m_owner+"-"+f1.m_id+".jpg";
-                        down_start(m_url, "wang", m_name, 4);
-                        break;
-                } // sw
-            } // add
+                    QString m_url =  "https://farm"+f1.m_farm+".staticflickr.com/"+f1.m_server+"/"+f1.m_id+"_"+f1.m_secret+img_sufix+".jpg"; 
+                    switch (photo_search)
+                    {
+                        case 1:
+                            m_name = f1.m_id+".jpg";
+                            down_start(m_url, f1.m_owner, m_name, 1);  
+                            break;
+                        case 2:
+                            m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                            down_start(m_url, img_tag, m_name, 2);
+                            break;
+                        case 3:
+                            m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                            down_start(m_url, group_id, m_name, 3);
+                            break;
+                        case 4:
+                            m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                            down_start(m_url, "ling", m_name, 4);
+                            break;
+                        case 5:
+                            m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                            down_start(m_url, "hsing", m_name, 4);
+                            break;
+                        case 6:
+                            m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                            down_start(m_url, "wang", m_name, 4);
+                            break;
+                        case 7:
+                            m_name = f1.m_owner+"-"+f1.m_id+".jpg";
+                            down_start(m_url, "wang", m_name, 4);
+                            break;
+                    } // sw
+                } // add
+            } // license
         } // for
     } // reply
 }

@@ -27,8 +27,8 @@ private Q_SLOTS:
         void set_root();
         void set_myid();
         void set_date();
+        void set_license();
         void slot_close();
-        
         
     private:
     

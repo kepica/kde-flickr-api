@@ -82,6 +82,13 @@ Welcome::Welcome(int koji) : QDialog()
             " * your friend upload new photo <br/>"
             " * there is new post on discusion <br/>"
             " * new photo is uploaded to group pools <br/>"
+            " <br/>"
+            "***         WARNING ! <br/>"
+            "This application can bulk download photos from Flickr. <br/>"
+            "Take care of license information for every photo you search. <br/>"
+            "If it is copyrighted , please do not download it. <br/>"
+            "If photo has CC license, it can be downloaded, nevertheless <br/>"
+            "respect authors' rights and allways quote original link of photo. <br/>"
             "</font>" );
     
     switch (koji)
@@ -122,8 +129,6 @@ Welcome::Welcome(int koji) : QDialog()
             
         case 2:       // -- all set, but user dont disable this dialog
             textArea->append("<html><font size=""3"">" 
-                " <br/>"
-                " Hello ! <br/>"
                 " <br/>"
                 " All important settings allready done. <br/>"
                 " <br/>"

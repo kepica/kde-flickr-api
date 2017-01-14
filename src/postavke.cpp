@@ -13,6 +13,7 @@
 #include <QCheckBox>
 #include <QButtonGroup>
 #include <QLineEdit>
+#include <QValidator>
 #include <QCalendarWidget>
 #include <QDate>
 #include <QDebug>
@@ -28,6 +29,7 @@
 MainWindow *prvi;
 QLineEdit *line_id;
 QLineEdit *line_root;
+QLineEdit *line_license;
 QCalendarWidget *date_1;
 QCalendarWidget *date_2;
 QSettings *s_set;
@@ -42,6 +44,7 @@ Postavke::Postavke(QWidget *parent, QSettings *mset) : QDialog(parent)
         
     QLabel *lab_id = new QLabel(i18n("Enter your flickr ID: "));
     QLabel *lab_root = new QLabel(i18n("Downloads directory: "));
+    QLabel *lab_license = new QLabel(i18n("Photo license code (1-8): "));
     
     line_id = new QLineEdit();
     line_id->setMaximumWidth(240);
@@ -52,6 +55,15 @@ Postavke::Postavke(QWidget *parent, QSettings *mset) : QDialog(parent)
     line_root->setReadOnly(true);
     line_root->setText(s_set->value("pic_root_dir", "none").toString()) ;
     
+    line_license = new QLineEdit();
+    line_license->setMinimumWidth(40);
+    line_license->setReadOnly(true);
+    line_license->setText(s_set->value("pic_license", "8").toString()) ;
+
+    QValidator *validator = new QIntValidator(1, 8, this);
+    line_license->setValidator(validator);
+    connect(line_license, SIGNAL(editingFinished()), this, SLOT(set_license()));
+    
     QPushButton* btn_id;
     btn_id = new QPushButton("Apply");
     connect(btn_id, SIGNAL(clicked()), this, SLOT(set_myid()));
@@ -60,19 +72,25 @@ Postavke::Postavke(QWidget *parent, QSettings *mset) : QDialog(parent)
     btn_root = new QPushButton("Select");
     connect(btn_root, SIGNAL(clicked()), this, SLOT(set_root()));
     
-    QHBoxLayout* h1Layout = new QHBoxLayout;
-    h1Layout->addWidget(lab_id);
-    h1Layout->addWidget(line_id);
-    h1Layout->addWidget(btn_id);
+    QHBoxLayout* h11Layout = new QHBoxLayout;
+    h11Layout->addWidget(lab_id);
+    h11Layout->addWidget(line_id);
+    h11Layout->addWidget(btn_id);
     
-    QHBoxLayout* h2Layout = new QHBoxLayout;
-    h2Layout->addWidget(lab_root);
-    h2Layout->addWidget(line_root);
-    h2Layout->addWidget(btn_root);
+    QHBoxLayout* h12Layout = new QHBoxLayout;
+    h12Layout->addWidget(lab_root);
+    h12Layout->addWidget(line_root);
+    h12Layout->addWidget(btn_root);
 
-    topGrid->addLayout(h1Layout,0,0);
-    topGrid->addLayout(h2Layout,1,0);
-   
+    QHBoxLayout* h13Layout = new QHBoxLayout;
+    h13Layout->addWidget(lab_license);
+    h13Layout->addWidget(line_license);
+    // h13Layout->addWidget(btn_license);
+    
+    topGrid->addLayout(h11Layout,0,0);
+    topGrid->addLayout(h12Layout,1,0);
+    topGrid->addLayout(h13Layout,2,0);
+    
     QGroupBox *frame1 = new QGroupBox();
     frame1->setFixedSize(600,110);
     frame1->setTitle(i18n("Basic settings"));
@@ -232,6 +250,15 @@ void Postavke::set_myid()
     
     prvi->user_id = m_myid;
     s_set->setValue("flickr_user_id", m_myid);
+}
+
+void Postavke::set_license()
+{
+    
+    QString m_lic = line_license->text();
+    
+    prvi->img_license = m_lic;
+    s_set->setValue("pic_license", m_lic);
 }
 
 void Postavke::set_date()

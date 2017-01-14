@@ -20,6 +20,7 @@ class MainWindow : public KXmlGuiWindow
         QString img_tag;
         QString savePath;
         QString img_dir;
+        QString img_license;
         QString user_id;
         QString group_id;
         QString group_name;
